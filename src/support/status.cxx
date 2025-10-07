@@ -933,7 +933,6 @@ void status::saveLastState()
 	}
 	mainW = mW;
 	mainH = mH;
-
 	if (tabsGeneric)
 		visible_tab = (tabsGeneric->value())->label();
 

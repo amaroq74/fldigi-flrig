@@ -1510,6 +1510,18 @@ void openMemoryDialog()
 	dlgMemoryDialog->show();
 }
 
+
+void showme(char ch)
+{
+	return;
+	std::cout << "Schema " << ch << std::endl;
+	std::cout << "Fl::h() : " << Fl::h() << std::endl;
+	std::cout << " X: " << mainwindow->x() << ",  Y: " << mainwindow->y() << ",  W: " << mainwindow->w() << ",  H: " << mainwindow->h() << std::endl;
+	std::cout << "sX:" << progStatus.mainX << ", sY: " << progStatus.mainY << ", sW: " << progStatus.mainW << ", sH: " << progStatus.mainH << std::endl;
+}
+
+static bool restore_position = false;
+
 void show_controls()
 {
 	Fl_Widget * vtab = (Fl_Widget *)0;
@@ -1523,6 +1535,11 @@ void show_controls()
 			vtabs[n]->redraw();
 		}
 	}
+
+	int X = mainwindow->x(),
+		Y = mainwindow->y(),
+		W = mainwindow->w(),
+		H = mainwindow->h();
 
 	switch (progStatus.UIsize) {
 		case touch_ui : {
@@ -1549,10 +1566,6 @@ void show_controls()
 				tabsGeneric->redraw();
 			}
 			if (progStatus.embed_tabs) { // embedded
-				int X = mainwindow->x(),
-					Y = mainwindow->y(),
-					W = mainwindow->w(),
-					H = mainwindow->h();
 				if ((progStatus.show_tabs && !progStatus.first_use) ||
 					(!progStatus.show_tabs && progStatus.first_use)) {
 
@@ -1623,76 +1636,60 @@ void show_controls()
 				tabsGeneric->redraw();
 			}
 			if (progStatus.embed_tabs) { // embedded
-				static int X = mainwindow->x(),
-						   Y = mainwindow->y(),
-						   W = mainwindow->w(),
-						   H = mainwindow->h();
-				if ((progStatus.show_tabs && !progStatus.first_use) || (!progStatus.show_tabs && progStatus.first_use)) {
+				if (progStatus.show_tabs) {
+showme('A');
+					H -= grpTABS->h();
+					mainwindow->size(W, H);
+					mainwindow->size_range( W, H, W, H);
+
 					tabs_dialog->add(grpTABS);
 
-					grpTABS->resize(tabs_dialog->x(), tabs_dialog->y(), tabs_dialog->w(), tabs_dialog->h());
-					mainwindow->resize(mainwindow->x(), mainwindow->y(), W, H);
-
-					int sW, sH;
-					sW = mainwindow->w();
-					sH = mainwindow->h();
-					mainwindow->size_range( sW, sH, sW, sH);
-
+					if (restore_position) {
+						mainwindow->position(X, Y + grpTABS->h());
+						restore_position = false;
+					} else {
+						mainwindow->position(X, Y);
+					}
 					progStatus.show_tabs = false;
-				} else if (!progStatus.show_tabs && !progStatus.first_use) {
-					X = mainwindow->x();
-					Y = mainwindow->y();
-					W = mainwindow->w();
-					H = mainwindow->h();
 
-					grpTABS->resize(0, H, W, grpTABS->h());
+				} else {
+showme('B');
 					mainwindow->add(grpTABS);
-
-					mainwindow->resize(X, Y, W, grpTABS->y() + grpTABS->h() + 2);
-
-					int sW, sH;
-					sW = mainwindow->w();
-					sH = mainwindow->h();
-					mainwindow->size_range( sW, sH, sW, sH);
-
+					grpTABS->position(0, H);
 					grpTABS->show();
-					progStatus.show_tabs = true;
-				} else if (progStatus.show_tabs && progStatus.first_use) {
 
-					X = mainwindow->x();
-					Y = mainwindow->y();
-					W = mainwindow->w();
-					H = mainwindow->h();
+					H += grpTABS->h();
+					mainwindow->size(W, H);
+					mainwindow->size_range( W, H, W, H);
 
-					mainwindow->resize(X, Y, W, grpTABS->y() + grpTABS->h() + 2);
-					int sW, sH;
-					sW = mainwindow->w();
-					sH = mainwindow->h();
-					mainwindow->size_range( sW, sH, sW, sH);
-
-					grpTABS->resize(0, H, W, grpTABS->h());
-					mainwindow->add(grpTABS);
-
-					grpTABS->show();
-					grpTABS->redraw();
-					mainwindow->redraw();
+					if (mainwindow->y() + mainwindow->decorated_h() >= Fl::h()) {
+						mainwindow->position(X, Y - grpTABS->h());
+						restore_position = true;
+					} else {
+						mainwindow->position(X, Y);
+					}
 					progStatus.show_tabs = true;
 				}
 			} else {
-				if ((progStatus.show_tabs && !progStatus.first_use) || (!progStatus.show_tabs && progStatus.first_use)) {
+				if (progStatus.first_use) {
+					X = progStatus.mainX;
+					Y = progStatus.mainY;
+				}
+				if (progStatus.show_tabs) {
 					tabs_dialog->hide();
-
+showme('C');
+					mainwindow->resize( X, Y, W, H);
+					mainwindow->size_range( W, H, W, H );
 					progStatus.show_tabs = false;
 
-				} else if ((!progStatus.show_tabs && !progStatus.first_use) || (progStatus.show_tabs && progStatus.first_use)) {
-					static int X, Y, W, H, dH;
-					X = mainwindow->x(); //progStatus.mainX;
-					Y = mainwindow->y(); //progStatus.mainY;
-					W = mainwindow->w(); //progStatus.mainW;
-					H = mainwindow->h();
-					dH = mainwindow->decorated_h();
-
-					tabs_dialog->resize( X, Y + dH, W, tabs_dialog->h() );
+				} else {
+					int dH = mainwindow->decorated_h();
+showme('D');
+					if ((Y + dH + tabs_dialog->h()) > Fl::h()) {
+						tabs_dialog->resize( X, Y + mainwindow->h() - mainwindow->decorated_h() - tabs_dialog->decorated_h(), W, tabs_dialog->h() );
+					} else {
+						tabs_dialog->resize( X, Y + dH, W, tabs_dialog->h() );
+					}
 					grpTABS->resize(0, 0, W, tabs_dialog->h());
 					if (vtab != (Fl_Widget *)0) tabsGeneric->value(vtab);
 					tabs_dialog->add(grpTABS);
@@ -1700,12 +1697,11 @@ void show_controls()
 					tabs_dialog->redraw();
 					progStatus.show_tabs = true;
 					mainwindow->resize(X, Y, W, H);
-					int sW, sH;
-					sW = mainwindow->w();
-					sH = mainwindow->h();
-					mainwindow->size_range( sW, sH, sW, sH);
+					int sH = mainwindow->h();
+					mainwindow->size_range( W, sH, W, sH);
 				}
 			}
+
 			break;
 		}
 		default :

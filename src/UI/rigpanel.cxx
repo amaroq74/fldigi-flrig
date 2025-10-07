@@ -443,35 +443,24 @@ static void cb_mnuVoltmeter(Fl_Menu_*, void*) {
 	updateVmeter(NULL);
 }
 
-static void cb_mnuSchema(Fl_Menu_*, void*) {
-	int state = progStatus.show_tabs;
-	if (progStatus.embed_tabs && progStatus.show_tabs)
-		show_controls();
-	if (!progStatus.embed_tabs && tabs_dialog->visible())
+static void cb_mnuSchema(Fl_Menu_*o, void*) {
+	if (progStatus.embed_tabs && progStatus.show_tabs) show_controls();
+	if (tabs_dialog && tabs_dialog->visible()) {
 		tabs_dialog->hide();
+		progStatus.show_tabs = false;
+	}
 	progStatus.schema = !progStatus.schema;
 	adjust_control_positions();
-	if (state != progStatus.show_tabs)
-		show_controls();
 }
 
-static void cb_mnu_embed_tabs(Fl_Menu_*, void*) {
+static void cb_mnu_embed_tabs(Fl_Menu_*o, void*) {
 
-	if (tabs_dialog && !progStatus.embed_tabs && tabs_dialog->visible()) {
+	if (tabs_dialog && tabs_dialog->visible()) {
 		tabs_dialog->hide();
-		show_controls();
-		progStatus.embed_tabs = true;
-		show_controls();
-	} else if (tabs_dialog && !progStatus.embed_tabs && !tabs_dialog->visible()) {
-		progStatus.embed_tabs = true;
-	} else if (progStatus.embed_tabs && progStatus.show_tabs) {
-		show_controls(); // close controls
-		progStatus.embed_tabs = false;
-		show_controls();
-	} else if (progStatus.embed_tabs && !progStatus.show_tabs) {
-		progStatus.embed_tabs = false;
+		progStatus.show_tabs = false;
 	}
-		
+	if (progStatus.embed_tabs && progStatus.show_tabs) show_controls();
+	progStatus.embed_tabs = !progStatus.embed_tabs;
 }
 
 static void cb_save_as_prefs(Fl_Menu_*, void*) {

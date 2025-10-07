@@ -301,13 +301,19 @@ void TRACED(adjust_small_ui)
 		else mnuEmbedTabs->clear();
 	}
 
-	mainwindow->size( mainwindow->w(), btn_show_controls->y() + btn_show_controls->h() + 2);
-
-	int sW, sH;
+	int sX, sY, sW, sH;
+	sX = mainwindow->x();
+	sY = mainwindow->y();
 	sW = mainwindow->w();
-	sH = mainwindow->h();
-	mainwindow->size_range( sW, sH, sW, sH);
+	sH = btn_show_controls->y() + btn_show_controls->h() + 2;
 
+	mainwindow->resize( sX, sY, sW, sH);
+	mainwindow->size_range( sW, sH, sW, sH);
+	progStatus.mainX = mainwindow->x();
+	progStatus.mainY = mainwindow->y();
+	progStatus.mainW = mainwindow->w();
+	progStatus.mainH = mainwindow->h();
+	
 	mainwindow->init_sizes();
 	mainwindow->redraw();
 
@@ -2561,8 +2567,6 @@ trace(1, "selrig->initialize()");
 			main_group->show();
 			mainwindow->redraw();
 
-			show_controls();
-
 			box_xcvr_connect->color(FL_BACKGROUND2_COLOR);
 			box_xcvr_connect->redraw();
 			fl_alert2(_("\
@@ -2630,8 +2634,6 @@ Press 'Init' button."));
 
 	if (selrig->name_ == rig_TS990.name_)  // UI tab issue pending real fix
 		progStatus.show_tabs = false;
-
-	show_controls();
 
 	main_group->show();
 	main_group->redraw();

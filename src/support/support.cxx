@@ -4087,6 +4087,8 @@ void TRACED(closeRig)
 
 void TRACED(cbExit)
 
+	if (progStatus.show_tabs) show_controls();
+
 	main_group->hide();
 	main_group->redraw();
 

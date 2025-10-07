@@ -327,10 +327,10 @@ void exit_main(Fl_Widget *w)
 
 }
 
-void expand_controls(void*)
-{
-	show_controls();
-}
+//void expand_controls(void*)
+//{
+//	show_controls();
+//}
 
 void close_controls(void*)
 {
@@ -345,6 +345,7 @@ void close_controls(void*)
 			break;
 		case small_ui :
 			if (tabs_dialog && tabs_dialog->visible()) tabs_dialog->hide();
+			if (progStatus.show_tabs) show_controls();
 			break;
 		case touch_ui :
 		default :
