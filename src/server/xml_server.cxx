@@ -1684,7 +1684,6 @@ public:
 
 		PTT = int(params[0]);
 		xml_trace(1, (PTT ? "rig_ptt ON" : "rig_ptt OFF"));
-
 		rigPTT(PTT);
 		{
 			bool get = ptt_state();
@@ -3506,7 +3505,7 @@ public:
 		Fl::awake(connection_ON);
 
 		std::string s = (std::string)params[0];
-		if (s.find(']') != std::string::npos) ptt_pending = true;
+//		if (s.find(']') != std::string::npos) ptt_pending = true;
 		FSK_add(s);
 	}
 
@@ -4335,6 +4334,8 @@ struct MLIST {
 	{ "rig.get_volume",           "i:n", "returns volume control value" },
 	{ "rig.get_rfgain",           "i:n", "returns rf gain control value" },
 	{ "rig.get_micgain",          "i:n", "returns mic gain control value" },
+
+	{ "rig.get_rtty_baud",        "i:n", "returns RTTY baud" },
 
 	{ "rig.get_agc_label",        "s:n", "return agc string descriptor" },
 	{ "rig.get_agc_labels",       "s:n", "return agc string label list" },

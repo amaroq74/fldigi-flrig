@@ -88,6 +88,7 @@ static const char * FSK::ascii[256] = {
 
 pthread_mutex_t fsk_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t fskio_text_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t fskio_stop_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 Cserial *FSK_serial = (Cserial *)0;
 FSK *fsk_instance = (FSK *)0;
@@ -99,7 +100,6 @@ FSK::FSK()
 	str_buff.clear();
 
 	start_bits = 0;
-	stop_bits  = 0;
 	chr_bits   = 0;
 	chr_out    = 0;
 	shift      = 0;
@@ -166,29 +166,9 @@ void btn_fskioSEND_OFF(void *v)
 	btn_fskioSEND->value(0);
 }
 
-bool FSK::sending() {
-	{
-		guard_lock lck(&fskio_text_mutex);
-		if (!FSK_new_text.empty()) {
-			str_buff.append(FSK_new_text);
-			FSK_new_text.clear();
-		}
-	}
-	if (str_buff[0] == '[') {
-		str_buff.erase(0,1);
-		Fl::awake(update_fsk_txt_to_send, this);
-		Fl::awake(btn_fskioSEND_ON, this);
-		FSK_send_text(true);
-		idles = progStatus.fsk_idles;
-		return true;
-	} else if (str_buff[0] == ']') {
-		str_buff.clear();
-		Fl::awake(update_fsk_txt_to_send, this);
-		Fl::awake(btn_fskioSEND_OFF, this);
-		FSK_send_text(false);
-		return false;
-	}
-	return btn_fskioSEND->value();
+bool FSK::sending()
+{
+	return true;
 }
 
 void FSK::fsk_out (bool state) {
@@ -234,46 +214,54 @@ int FSK::baudot_enc(int data) {
 	return shift_state | 4;
 }
 
+extern double monotonic_seconds();
+
 // return current tick time in seconds
 double FSK::now()
 {
-	static struct timeval t1;
-	gettimeofday(&t1, NULL);
-	return t1.tv_sec + t1.tv_usec / 1e6;
+	return monotonic_seconds();
 }
 
 int FSK::sleep (double sleep_time)
 {
-	struct timespec tv;
-	double start_at = now();
+	static double lasterr = 0;
+	struct timespec tv1, tv2;
+	double start_at = monotonic_seconds();
 	double end_at = start_at + sleep_time;
-	double delay = sleep_time - 0.005;
-	tv.tv_sec = (time_t) delay;
-	tv.tv_nsec = (long) ((delay - tv.tv_sec) * 1e+9);
-	int rval = 0;
+	double delay = sleep_time - 0.010;
+
+	tv1.tv_sec = (time_t) delay;
+	tv1.tv_nsec = (long) ((delay - tv1.tv_sec) * 1e+9);
+	tv2.tv_sec = 0;
+	tv2.tv_nsec = 10;
+
 #ifdef __WIN32__
 	timeBeginPeriod(1);
-	end_at -= 0.0005;
-#endif
-	while (1) {
-		rval = nano_sleep (&tv, &tv);
-		if (rval == 0)
-			break;
-		else if (errno == EINTR)
-			continue;
-		else
-			return rval;
-	}
-	while (now() < end_at);
-#ifdef __WIN32__
+	nano_sleep (&tv1, NULL);
+	while ((lasterr = end_at - monotonic_seconds()) > 0)
+		nano_sleep(&tv2, NULL);
 	timeEndPeriod(1);
+#else
+	nano_sleep (&tv1, NULL);
+	while (((lasterr = end_at - monotonic_seconds()) > 0))
+		nano_sleep(&tv2, NULL);
 #endif
+
+	std::string fname = RigHomeDir;
+	fname.append("fskio_stat.txt");
+	FILE *fskio_stat = fopen(fname.c_str(), "a");
+	fprintf(fskio_stat, "%f, %f\n", sleep_time, (end_at - lasterr - start_at));
+	fclose(fskio_stat);
+
 	return 0;
 }
+
+bool xmting = false;
 
 void FSK::send_baudot(int ch)
 {
 	double t1;
+	xmting = true;
 	if (ch == LTRS) shift_state = FSK_LETTERS;
 	else if (ch == FIGS) shift_state = FSK_FIGURES;
 
@@ -305,39 +293,95 @@ void FSK::send_baudot(int ch)
 	fsk_out(FSK_MARK);
 	sleep(BITLEN * (progStatus.FSK_STOPBITS ? 1.5 : 2.0) - (now() - t1) );
 
+	xmting = false;
 }
 
-
-int FSK::callback_method()
+void FSK::start_xmt()
 {
-	if (sending()) {
-		if (str_buff.empty() || idles) {
+	str_buff.erase(0,1);
+	Fl::awake(update_fsk_txt_to_send, this);
+	Fl::awake(btn_fskioSEND_ON, this);
+	FSK_send_text(true);
+	idles = progStatus.fsk_idles;
+}
+
+void FSK::end_xmt()
+{
+	send_char(' ');
+	str_buff.erase(0,1);
+	Fl::awake(update_fsk_txt_to_send, this);
+	Fl::awake(btn_fskioSEND_OFF, this);
+	FSK_send_text(false);
+}
+
+void FSK::send_char(unsigned char chr)
+{
+	chr_out = baudot_enc(chr);
+
+	if ((chr_out & 0x300) != shift_state) {
+		shift_state = chr_out & 0x300;
+		if (shift_state == FSK_LETTERS) {
 			send_baudot(LTRS);
-			if (idles) idles--;
 		} else {
-			chr_out = baudot_enc(str_buff[0]);
-			if ((chr_out & 0x300) != shift_state) {
-				shift_state = chr_out & 0x300;
-				if (shift_state == FSK_LETTERS) {
-					send_baudot(LTRS);
-				} else {
-					send_baudot(FIGS);
-				}
-			}
-			str_buff.erase(0,1);
-			Fl::awake(update_fsk_txt_to_send, this);
-			send_baudot(chr_out & 0x1F);
+			send_baudot(FIGS);
 		}
+	}
+	send_baudot(chr_out & 0x1F);
+}
+
+void FSK::loop_xmt()
+{
+	if ( selrig->modes_.size() == 0) {
+		MilliSleep(50);
+		return;
+	}
+	if ( selrig->modes_.at(vfo->imode).find("RTTY") == std::string::npos) {
+		MilliSleep(50);
+		return;
+	}
+
+	if (xmting) {
+		MilliSleep(5);
+		return;
+	}
+
+	if (!FSK_new_text.empty()) {
+		str_buff.append(FSK_new_text);
+		FSK_new_text.clear();
+	}
+	if (idles) {
+		send_baudot(LTRS);
+		if (idles) idles--;
+		return;
+	}
+	if (str_buff.empty()) {
+		send_baudot(LTRS);
+		return;
+	}
+	if (str_buff[0] == '[') {
+		start_xmt();
+		return;
+	}
+	if (str_buff[0] == ']') {
+		end_xmt();
+		return;
+	}
+	unsigned char c = str_buff[0];
+	if (c == '\n') {
+		send_char('\r');
+		send_char('\n');
 	} else
-		MilliSleep(BITLEN*100L);
-	return 0;
+		send_char(c);
+	str_buff.erase(0,1);
+	Fl::awake(update_fsk_txt_to_send, this);
+	return;
 }
 
 void *fsk_loop(void *data)
 {
 	FSK *fsk = (FSK *)data;
 	while (1) {
-		fsk->callback_method();
+		fsk->loop_xmt();
 		{
 			guard_lock tlock (&fsk_mutex);
 			if (fsk->fsk_loop_terminate) goto _exit;
@@ -533,4 +577,14 @@ void FSK_open_config()
 			break;
 	}
 	FSK_configure->show();
+}
+
+void wait_fskPTT()
+{
+	int count = 100;
+	while (xmting) {
+		MilliSleep(50);
+		Fl::awake();
+		if (--count == 0) break;
+	}
 }

@@ -108,13 +108,16 @@ private:
 	int mode;
 	int shift_state;
 	int start_bits;
-	int stop_bits;
 	int chr_bits;
 	int   chr_out;
 
 	double BITLEN;
 	double now();
 	int    sleep (double sleep_time);
+
+	void start_xmt();
+	void end_xmt();
+	void send_char(unsigned char);
 
 	void send_baudot(int);
 	int baudot_enc(int);
@@ -124,7 +127,7 @@ public:
 
 	std::string str_buff;
 
-	int callback_method();
+	void loop_xmt();
 
 	int init_fsk_thread();
 	void exit_fsk_thread();
@@ -178,4 +181,5 @@ extern void FSK_control_function_keys();
 
 extern void FSK_open_config();
 
+extern void wait_fskPTT();
 #endif
