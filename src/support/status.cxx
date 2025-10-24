@@ -553,6 +553,7 @@ status progStatus = {
 	0,			// int		FSK_INVERTED; reverse keying; 
 	1,			// int		FSK_STOPBITS; 1 - 1.5; 0 - 2
 	8,			// int		fsk_idles
+	45.45,		// double	fsk_baud
 	"",			// std::string	FSK_PORT;
 
 	{
@@ -560,7 +561,7 @@ status progStatus = {
 		"","","","","",""					// std::string	FSK_msgs[12];
 	},
 	{
-		"m2","m2","m3","m4","m4","m6",
+		"m1","m2","m3","m4","m4","m6",
 		"m7","m8","m9","m10","m11","m12"	// std::string	FSK_labels[12];
 	},
 
@@ -1519,6 +1520,7 @@ void status::saveLastState()
 	spref.set("FSK_INVERTED", FSK_INVERTED);
 	spref.set("FSK_STOPBITS", FSK_STOPBITS);
 	spref.set("FSK_IDLES", fsk_idles);
+	spref.set("FSK_BAUD", fsk_baud);
 	spref.set("FSK_PORT", FSK_PORT.c_str());
 
 	for (int n = 0; n < 12; n++) {
@@ -2307,6 +2309,7 @@ bool status::loadXcvrState(std::string xcvr)
 		spref.get("FSK_INVERTED", FSK_INVERTED, FSK_INVERTED);
 		spref.get("FSK_STOPBITS", FSK_STOPBITS, FSK_STOPBITS);
 		spref.get("FSK_IDLES", fsk_idles, fsk_idles);
+		spref.get("FSK_BAUD", fsk_baud, fsk_baud);
 		spref.get("FSK_PORT", defbuffer, "NONE", MAX_DEFBUFFER_SIZE);
 		FSK_PORT = defbuffer;
 

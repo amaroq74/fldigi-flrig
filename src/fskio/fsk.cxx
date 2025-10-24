@@ -107,7 +107,7 @@ FSK::FSK()
 	_shift_on_space = false;
 	idles = progStatus.fsk_idles;
 
-	BITLEN = 0.022;
+	BITLEN =  1.0 / progStatus.fsk_baud; // 0.022
 
 	init_fsk_thread();
 

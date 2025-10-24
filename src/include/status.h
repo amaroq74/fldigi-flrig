@@ -535,6 +535,7 @@ struct status {
 	int		FSK_INVERTED;
 	int		FSK_STOPBITS;
 	int		fsk_idles;
+	double	fsk_baud;
 	std::string	FSK_PORT;
 	std::string	FSK_msgs[12];
 	std::string	FSK_labels[12];

@@ -3491,6 +3491,8 @@ public:
 } rig_cwio_text(&rig_server);
 
 //------------------------------------------------------------------------------
+// FSK parameters
+//------------------------------------------------------------------------------
 // Set fskio transmit std::string
 //------------------------------------------------------------------------------
 
@@ -3513,6 +3515,52 @@ public:
 
 } rig_fskio_text(&rig_server);
 
+//------------------------------------------------------------------------------
+
+class rig_get_fsk_stopbits : public XmlRpcServerMethod {
+public:
+	rig_get_fsk_stopbits(XmlRpcServer* s) : XmlRpcServerMethod("rig.get_fsk_stopbits", s) {}
+
+		void execute(XmlRpcValue& params, XmlRpcValue& result) { 
+		Fl::awake(connection_ON);
+
+		result = int(progStatus.FSK_STOPBITS);
+	}
+
+	std::string help() { return std::string("reads FSK stopbits value"); }
+
+} rig_get_fsk_stopbits(&rig_server);
+
+
+class rig_get_fsk_idles : public XmlRpcServerMethod {
+public:
+	rig_get_fsk_idles(XmlRpcServer* s) : XmlRpcServerMethod("rig.get_fsk_idles", s) {}
+
+		void execute(XmlRpcValue& params, XmlRpcValue& result) { 
+		Fl::awake(connection_ON);
+
+		result = int(progStatus.fsk_idles);
+	}
+
+	std::string help() { return std::string("reads FSK idles value"); }
+
+} rig_get_fsk_idles(&rig_server);
+
+class rig_get_fsk_baud : public XmlRpcServerMethod {
+public:
+	rig_get_fsk_baud(XmlRpcServer* s) : XmlRpcServerMethod("rig.get_fsk_baud", s) {}
+
+		void execute(XmlRpcValue& params, XmlRpcValue& result) { 
+		Fl::awake(connection_ON);
+
+		result = double(progStatus.fsk_baud);
+	}
+
+	std::string help() { return std::string("reads FSK baud rate"); }
+
+} rig_get_fsk_baud(&rig_server);
+
+//------------------------------------------------------------------------------
 // Set cwio transmit on (1) or off (0)
 //------------------------------------------------------------------------------
 
@@ -4406,7 +4454,11 @@ struct MLIST {
 	{ "rig.cwio_set_wpm",         "n:i", "set cwio WPM" },
 	{ "rig.cwio_text",            "i:s", "send text via cwio interface" },
 	{ "rig.cwio_send",            "n:i", "cwio transmit 1/0 (on/off)"},
+
 	{ "rig.fskio_text",           "i:s", "send text via fskio interface" },
+	{ "rig.get_fsk_stopbits",     "i:n", "read FSK stop bits" },
+	{ "rig.get_fsk_idles",        "i:n", "read FSK idle" },
+	{ "rig.get_fsk_baud",         "i:n", "read FSK baud rate" },
 
 	{ "rig.mod_vfoA",             "d:d", "modify vfo A +/- NNN Hz" },
 	{ "rig.mod_vfoB",             "d:d", "modify vfo B +/- NNN Hz" },
