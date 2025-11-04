@@ -178,13 +178,14 @@ void send_cwkey(char c)
 	if (xcvr_corr < -tc / 2) xcvr_corr = - tc / 2;
 	else if (xcvr_corr > tc / 2) xcvr_corr = tc / 2;
 
-	if (c == ' ' || c == 0x0a) {
+	code = morse->tx_lookup(c);
+
+	if (code.empty()) {// == ' ' || c == 0x0a) {
 		requested += twd;
 		cw_sleep(twd);
 		goto exit_send_cwkey;
 	}
 
-	code = morse->tx_lookup(c);
 	for (size_t n = 0; n < code.length(); n++) {
 		if (cwio_process == END) {
 			goto exit_send_cwkey;
@@ -284,6 +285,8 @@ void update_txt_to_send(void *)
 
 void terminate_sending(void *)
 {
+	if (progStatus.cwioPTT)
+		doPTT(0);
 	btn_cwioSEND->value(0);
 }
 
@@ -296,32 +299,30 @@ void sending_text()
 	}
 	while (cwio_process == SEND) {
 		c = 0;
+		snd = txt_to_send->value();
 		{
 			guard_lock lck(&cwio_text_mutex);
-			if (!cwio_text.empty()) {
-				c = cwio_text[0];
-				cwio_text.erase(0,1);
-			}
-		}
-		if (!c) {
-			snd = txt_to_send->value();
 			if (!snd.empty()) {
 				c = snd[0];
 				snd.erase(0,1);
 				Fl::awake(update_txt_to_send);
+			} else {
+				if (!cwio_text.empty()) {
+					c = cwio_text[0];
+					cwio_text.erase(0,1);
+				}
 			}
 		}
-		if (c == ']') {
+		if (!(morse->tx_lookup(c)).empty()) {
+			send_cwkey(c);
+		} else if (c == ']') {
 			cwio_process = END;
+			snd.clear();
+			Fl::awake(update_txt_to_send);
 			Fl::awake(terminate_sending);
-			return;
-		}
-		if (c) send_cwkey(c);
-		else MilliSleep(50);
-	}
-	if (progStatus.cwioPTT) {
-		doPTT(0);
-		MilliSleep(50);
+			MilliSleep(10);
+		} else
+			MilliSleep(50);
 	}
 }
 
@@ -371,7 +372,7 @@ void *cwio_loop(void *)
 	cwio_thread_running = true;
 	cwio_process = NONE;
 
-#if 1
+#if 0
 if (PRIORITY) {
 	char estr[200];
 	std::string erfname = RigHomeDir;
@@ -469,20 +470,6 @@ int start_cwio_thread()
 	memset((void *) &cwio_mutex,   0, sizeof(cwio_mutex));
 	memset((void *) &cwio_cond,    0, sizeof(cwio_cond));
 
-#ifdef CWIO_DEBUG
-	if (!fcwio) {
-		std::string debug_fname;
-		debug_fname.assign(RigHomeDir).append("cwio_timing.txt");
-		fcwio = fopen(debug_fname.c_str(), "a");
-	}
-
-	if (!fcwio2) {
-		std::string debug_fname2;
-		debug_fname2.assign(RigHomeDir).append("cwio_bits.txt");
-		fcwio2 = fopen(debug_fname2.c_str(), "a");
-	}
-#endif
-
 	if(pthread_cond_init(&cwio_cond, NULL)) {
 		LOG_ERROR("cwio thread create fail (pthread_cond_init)");
 		return 1;
@@ -492,42 +479,6 @@ int start_cwio_thread()
 		LOG_ERROR("cwio thread create fail (pthread_mutex_init)");
 		return 1;
 	}
-
-#if 0
-	// bump up the cwio thread priority
-	pthread_attr_t tattr;
-	if (pthread_attr_init(&tattr)) {
-		LOG_ERROR("cwio thread fail (pthread_attr_init)");
-		std::cout << __LINE__ << " : " << errno << ", " << strerror(errno) << std::endl;
-	}
-	sched_param param;
-	int sched;
-	if (pthread_attr_getinheritsched(&tattr, &sched)) {
-		LOG_ERROR("cwio thread fail (pthread_attr_getinheritsched)");
-		std::cout << __LINE__ << " : errno " << errno << ", " << strerror(errno) << std::endl;
-	}
-	sched = PTHREAD_EXPLICIT_SCHED;
-	if (pthread_attr_setinheritsched(&tattr, sched)) {
-		LOG_ERROR("cwio thread fail (pthread_attr_setinheritsched)");
-		std::cout << __LINE__ << " : errno " << errno << ", " << strerror(errno) << std::endl;
-	}
-	if (pthread_attr_getschedparam(&tattr, &param)) {
-		LOG_ERROR("cwio thread fail (pthread_attr_getscheduparam)");
-		std::cout << __LINE__ << " : errno " << errno << ", " << strerror(errno) << std::endl;
-	}
-		std::cout << __LINE__ << " : priority old = " << param.sched_priority << std::endl;
-	param.sched_priority = sched_get_priority_max(SCHED_FIFO);
-		std::cout << __LINE__ << " : priority new = " << param.sched_priority << std::endl;
-	if (pthread_attr_setschedparam(&tattr, &param)) {
-		LOG_ERROR("cwio thread fail (pthread_attr_setscheduparam)");
-		std::cout << __LINE__ << " : errno " << errno << ", " << strerror(errno) << std::endl;
-	}
-	if (pthread_attr_getschedparam(&tattr, &param)) {
-		LOG_ERROR("cwio thread fail (pthread_attr_getscheduparam)");
-		std::cout << __LINE__ << " : errno " << errno << ", " << strerror(errno) << std::endl;
-	}
-	std::cout << __LINE__ << " : priority got = " << param.sched_priority << std::endl;
-#endif
 
 	if (pthread_create(&cwio_pthread, NULL, cwio_loop, NULL) < 0) {
 		pthread_mutex_destroy(&cwio_mutex);
@@ -637,22 +588,32 @@ void add_cwio(std::string txt)
 				cw_log_nbr->value(progStatus.cw_log_nbr);
 		}
 	}
-	new_text = txt_to_send->value();
-	new_text.append(txt);
+	{
+		guard_lock lck(&cwio_text_mutex);
+		new_text = txt_to_send->value();
+		new_text.append(txt);
 
-	txt_to_send->value(new_text.c_str());
-	txt_to_send->redraw();
-	if (txt[0] == '[') {
-		send_text(true);
-		btn_cwioSEND->value(1);
+		size_t pos = std::string::npos;
+		if ((pos = new_text.find('[')) != std::string::npos) {
+			while (pos != std::string::npos) {
+				new_text.erase(pos,1);
+				pos = new_text.find('[');
+			}
+			btn_cwioSEND->value(1);
+			send_text(true);
+		}
+		if (new_text[0] == ']') send_text(true);
+		txt_to_send->value(new_text.c_str());
+		txt_to_send->redraw();
 	}
+
 }
 
 void send_text(bool state)
 {
 	if (!cwio_thread_running) return;
 
-	if (state && cwio_process != SEND) {
+	if (state) { //&& cwio_process != SEND) {
 		cwio_process = SEND;
 		pthread_cond_signal(&cwio_cond);
 	} else {

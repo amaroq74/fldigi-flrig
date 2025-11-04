@@ -716,7 +716,6 @@ int parse_args(int argc, char **argv, int& idx)
   --xml-trace\n\
   --exp (expand menu tab controls)\n\
   --iconify {-i}\n\
-  --priority {-p}\n\
   --test\n";
 
 	if (strcasecmp("--help", argv[idx]) == 0) {
@@ -766,11 +765,6 @@ int parse_args(int argc, char **argv, int& idx)
 	}
 	if (!strcasecmp(argv[idx], "-i") || !strcasecmp(argv[idx], "--iconify")) {
 		iconified = true;
-		idx++;
-		return 1;
-	}
-	if (!strcasecmp(argv[idx], "-p") || !strcasecmp(argv[idx], "--priority")) {
-		PRIORITY = true;
 		idx++;
 		return 1;
 	}

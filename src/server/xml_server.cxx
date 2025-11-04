@@ -3482,7 +3482,6 @@ public:
 		Fl::awake(connection_ON);
 
 		std::string s = (std::string)params[0];
-		guard_lock lck(&cwio_text_mutex);
 		add_cwio(s);
 	}
 
