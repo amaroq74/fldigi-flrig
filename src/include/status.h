@@ -31,6 +31,8 @@
 #define MAX_DEFBUFFER_SIZE 500
 
 struct status {
+	int		screen_number;
+	int		screen_scale;
 	int		mainX;
 	int		mainY;
 	int		mainW;

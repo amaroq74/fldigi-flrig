@@ -45,8 +45,6 @@ void TRACED(adjust_small_ui)
 
 	int y = 0;
 
-//	mainwindow->resize( mainwindow->x(), mainwindow->y(), SMALL_MAINW, SMALL_MAINH);
-
 	btnVol->hide();
 	sldrVOLUME->hide();
 	sldrRFGAIN->hide();
@@ -302,13 +300,14 @@ void TRACED(adjust_small_ui)
 	}
 
 	int sX, sY, sW, sH;
-	sX = mainwindow->x();
-	sY = mainwindow->y();
+	sX = progStatus.mainX;//mainwindow->x();
+	sY = progStatus.mainY;//mainwindow->y();
 	sW = mainwindow->w();
 	sH = btn_show_controls->y() + btn_show_controls->h() + 2;
 
 	mainwindow->resize( sX, sY, sW, sH);
 	mainwindow->size_range( sW, sH, sW, sH);
+
 	progStatus.mainX = mainwindow->x();
 	progStatus.mainY = mainwindow->y();
 	progStatus.mainW = mainwindow->w();

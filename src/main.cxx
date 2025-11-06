@@ -236,7 +236,7 @@ void set_platform_ui(void)
 #else
 	   FL_NORMAL_SIZE = 12;
 #endif
-
+/*
 float dpx, dpy;
     Fl::screen_dpi ( dpx, dpy );
 
@@ -246,6 +246,7 @@ float scrn_scale = dpx / 90.0;
 
 // std::cout << "new screen scale factor: " << scrn_scale << std::endl;
     Fl::screen_scale(0, scrn_scale);
+*/
 }
 #endif
 
@@ -376,6 +377,7 @@ void startup(void*)
 		}
 		case small_ui :
 		default :
+			mainwindow->resize(progStatus.mainX, progStatus.mainY, progStatus.mainW, progStatus.mainH);
 			break;
 	}
 	start_server(xmlport);
@@ -528,6 +530,11 @@ int main (int argc, char *argv[])
 			tabs_dialog->hide();
 	}
 	mainwindow->callback(exit_main);
+
+#if FLRIG_FLTK_API_MINOR >3
+	mainwindow->screen_num(progStatus.screen_number);
+	Fl::screen_scale(progStatus.screen_number, progStatus.screen_scale / 100.0);
+#endif
 
 	meters_dialog = win_meters();
 

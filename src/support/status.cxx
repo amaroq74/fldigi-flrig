@@ -45,6 +45,8 @@ std::string xcvr_name = szNORIG;
 int current_ui_size = -1;
 
 status progStatus = {
+	0,			// int screen_number;
+	100,		// double screen_scale;
 	50,			// int mainX;
 	50,			// int mainY;
 	800,		// int mainW;
@@ -907,10 +909,19 @@ void status::saveLastState()
 
 	xcvrpref.set("xcvr_name", xcvr_name.c_str());
 
-	int mX = mainwindow->x();
-	int mY = mainwindow->y();
-	int mW = mainwindow->w();
-	int mH = mainwindow->h();
+	mainX = mainwindow->x();
+	mainY = mainwindow->y();
+	mainW = mainwindow->w();
+	mainH = mainwindow->h();
+
+#if FLRIG_FLTK_API_MINOR >3
+	int scrx = 0, scry = 0, scrw = 0, scrh = 0;
+	screen_number = mainwindow->screen_num();
+	screen_scale = Fl::screen_scale(screen_number) * 100;
+	Fl::screen_xywh( scrx, scry, scrw, scrh);
+	mainX -= scrx;
+	mainY -= scry;
+#endif
 
 	if (dlgMemoryDialog) {
 		memX = dlgMemoryDialog->x();
@@ -925,15 +936,12 @@ void status::saveLastState()
 		metersY = meters_dialog->y();
 	}
 
-	mainX = mX;
-	mainY = mY;
 	if (UIsize == wide_ui) {
-		if (mW < WIDE_MAINW)
-			mW = WIDE_MAINW;
-		mH = WIDE_MAINH;
+		if (mainW < WIDE_MAINW)
+			mainW = WIDE_MAINW;
+		mainH = WIDE_MAINH;
 	}
-	mainW = mW;
-	mainH = mH;
+
 	if (tabsGeneric)
 		visible_tab = (tabsGeneric->value())->label();
 
@@ -957,10 +965,13 @@ void status::saveLastState()
 
 	spref.set("uisize", UIsize);
 
-	spref.set("memx", memX);
-	spref.set("memy", memY);
-	spref.set("memw", memW);
-	spref.set("memh", memH);
+	spref.set("screen_number", screen_number);
+	spref.set("screen_scale", screen_scale);
+
+	spref.set("memX", memX);
+	spref.set("memY", memY);
+	spref.set("memW", memW);
+	spref.set("memH", memH);
 
 	spref.set("metersx", metersX);
 	spref.set("metersy", metersY);
@@ -1578,10 +1589,13 @@ bool status::loadXcvrState(std::string xcvr)
 			mainH = WIDE_MAINH;
 		}
 
-		spref.get("memx", memX, memX);
-		spref.get("memy", memY, memY);
-		spref.get("memw", memW, memW);
-		spref.get("memh", memH, memH);
+		spref.get("screen_number", screen_number, screen_number);
+		spref.get("screen_scale", screen_scale, screen_scale);
+
+		spref.get("memX", memX, memX);
+		spref.get("memY", memY, memY);
+		spref.get("memW", memW, memW);
+		spref.get("memH", memH, memH);
 
 		spref.get("metersx", metersX, metersX);
 		spref.get("metersy", metersY, metersY);
