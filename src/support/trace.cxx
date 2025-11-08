@@ -128,9 +128,9 @@ void write_tracetext()
 
 void trace(int n, ...) // all args of type const char *
 {
+	if (!n) return;
 	if (!progStatus.trace) return;
 	if (!tracewindow) make_trace_window();
-	if (!n) return;
 
 	std::stringstream s;
 	va_list vl;
@@ -152,9 +152,9 @@ void trace(int n, ...) // all args of type const char *
 
 void xml_trace(int n, ...) // all args of type const char *
 {
+	if (!n) return;
 	if (!progStatus.xmltrace) return;
 	if (!tracewindow) make_trace_window();
-	if (!n) return;
 
 	std::stringstream s;
 	va_list vl;
@@ -178,8 +178,8 @@ void xml_trace(int n, ...) // all args of type const char *
 
 void rig_trace(int n, ...) // all args of type const char *
 {
-	if (!progStatus.rigtrace) return;
 	if (!n) return;
+	if (!progStatus.rigtrace) return;
 	if (!tracewindow) make_trace_window();
 
 	std::stringstream s;
@@ -200,9 +200,9 @@ void rig_trace(int n, ...) // all args of type const char *
 
 void set_trace(int n, ...) // all args of type const char *
 {
+	if (!n) return;
 	if (!progStatus.settrace) return;
 	if (!tracewindow) make_trace_window();
-	if (!n) return;
 
 	std::stringstream s;
 	va_list vl;
@@ -222,9 +222,9 @@ void set_trace(int n, ...) // all args of type const char *
 
 void get_trace(int n, ...) // all args of type const char *
 {
+	if (!n) return;
 	if (!progStatus.gettrace) return;
 	if (!tracewindow) make_trace_window();
-	if (!n) return;
 
 	std::stringstream s;
 	va_list vl;
@@ -245,6 +245,8 @@ void get_trace(int n, ...) // all args of type const char *
 void rpc_trace(int n, ...) // all args of type const char *
 {
 	if (!n) return;
+	if (!progStatus.rpctrace) return;
+	if (!tracewindow) make_trace_window();
 
 	std::stringstream s;
 	va_list vl;
@@ -308,9 +310,9 @@ void rpc_trace(int n, ...) // all args of type const char *
 
 void ser_trace(int n, ...) // all args of type const char *
 {
+	if (!n) return;
 	if (!progStatus.serialtrace) return;
 	if (!tracewindow) make_trace_window();
-	if (!n) return;
 
 	std::stringstream s;
 	va_list vl;
@@ -331,6 +333,7 @@ void ser_trace(int n, ...) // all args of type const char *
 void deb_trace(int n, ...) // all args of type const char *
 {
 	if (!n) return;
+	if (!progStatus.debugtrace) return;
 	if (!tracewindow) make_trace_window();
 
 	std::stringstream s;
@@ -391,8 +394,8 @@ void deb_trace(int n, ...) // all args of type const char *
 
 void tci_trace(int n, ...) // all args of type const char *
 {
-//	if (!progStatus.tcitrace) return;
 	if (!n) return;
+	if (!progStatus.tcitrace) return;
 	if (!tracewindow) make_trace_window();
 
 	std::stringstream s;

@@ -241,7 +241,7 @@ Data Source: %s\n\
   auto notch ..... %4d, notch ......... %4d, notch value ... %4d\n\
   noise .......... %4d, nr ............ %4d, nr val ........ %4d\n\
   mic gain ....... %4d, agc level ..... %4d, squelch ....... %4d\n\
-  compression .... %4d, compON ........ %4d",
+  compression .... %4d, compON ........ %4d\n",
 			data.split,
 			data.power_control,
 			data.volume_control,
@@ -275,10 +275,10 @@ std::string print_all()
 	std::string s;
 	s.assign("\
 =======================================================================\n");
-	s.append(print(vfoA)).append("\n");
+	s.append(print(vfoA));
 	s.append("\
 -----------------------------------------------------------------------\n");
-	s.append(print(vfoB)).append("\n");
+	s.append(print(vfoB));
 	return s;
 }
 
@@ -429,6 +429,9 @@ void setFILTER(void *)
 }
 
 // mode and bandwidth
+
+int last_mode = -1;
+
 void read_mode()
 {
 	if (xcvr_name == rig_K3.name_) {
@@ -438,18 +441,17 @@ void read_mode()
 
 	int nu_mode;
 	if (selrig->inuse == onA) {
-		rig_trace(2, "read_mode", "vfoA active");
 		nu_mode = selrig->get_modeA();
-char resp[50];
-snprintf(resp, sizeof(resp), "read: %d", nu_mode);
-rig_trace(1, resp);
-		if (nu_mode != opMODE->index()) {
+		if (last_mode != nu_mode) {
 			vfoA.imode = vfo->imode = nu_mode;
 			selrig->adjust_bandwidth(vfo->imode);
 			Fl::awake(set_Mode_BW_control);
 			vfoA.iBW = vfo->iBW = selrig->get_bwA();
 			Fl::awake(updateBandwidthControl);
-		}
+			deb_trace(2, "read_mode(vfoA)", printXCVR_STATE(vfoA).c_str());
+			last_mode = nu_mode;
+		} else
+			rig_trace(1, "read_mode(vfoA)");
 
 		Fl::awake(updateTCI);
 		Fl::awake(updateFLEX1500);
@@ -462,15 +464,18 @@ rig_trace(1, resp);
 		vfoA.filter = selrig->get_FILT(vfoA.imode);
 		Fl::awake(setFILTER);
 	} else {
-		rig_trace(2, "read_mode", "vfoB active");
 		nu_mode = selrig->get_modeB();
-		if (nu_mode != opMODE->index()) {
+		if (last_mode != nu_mode) {
 			vfoB.imode = vfo->imode = nu_mode;
 			selrig->adjust_bandwidth(vfo->imode);
 			Fl::awake(set_Mode_BW_control);
 			vfoB.iBW = vfo->iBW = selrig->get_bwB();
 			Fl::awake(updateBandwidthControl);
-		}
+			deb_trace(2, "read_mode(vfoB)", printXCVR_STATE(vfoB).c_str());
+			last_mode = nu_mode;
+		} else
+			rig_trace(1, "read_mode(vfoB)");
+
 		Fl::awake(updateTCI);
 		Fl::awake(updateFLEX1500);
 
@@ -536,6 +541,7 @@ void set_Kx_bandwidths(void *)
 	opBW_B->redraw();
 }
 
+int lastbw = -1;
 void TRACED(read_bandwidth)
 	if (xcvr_name == rig_K2.name_ || xcvr_name == rig_K3.name_ ) {
 		vfoA.iBW = vfo->iBW = selrig->get_bwA();//nu_BW;
@@ -552,18 +558,20 @@ void TRACED(read_bandwidth)
 		return;
 	}
 
-	trace(1,"read_bandwidth()");
-
 	std::stringstream s;
 	if (selrig->inuse == onA) {
-		s << "get_bwA(): ";
 		vfoA.iBW = vfo->iBW = selrig->get_bwA();
+		s << "read_bandwidth(vfoA): " << printXCVR_STATE(vfoA);
 	} else {
-		s << "get_bwB(): ";
 		vfoB.iBW = vfo->iBW = selrig->get_bwB();
+		s << "read_bandwidth(vfoB): " << printXCVR_STATE(vfoB);
 	}
-	s << vfo->iBW;
-	trace(1, s.str().c_str());
+	rig_trace(1, s.str().c_str());
+	if (lastbw != vfo->iBW) {
+		deb_trace(1, s.str().c_str());
+		lastbw = vfo->iBW;
+	}
+
 	Fl::awake(setBWControl);
 	Fl::awake(updateTCI);
 	Fl::awake(updateFLEX1500);
