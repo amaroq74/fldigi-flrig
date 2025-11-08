@@ -276,10 +276,11 @@ Pixmap  Rig_icon_pixmap;
 
 void make_pixmap(Pixmap *xpm, const char **data)
 {
-	Fl_Window w(0,0, KNAME);
-	w.xclass(KNAME);
-	w.show();
-	w.make_current();
+	Fl_Window *w = new Fl_Window(10, 10, KNAME);
+	w->xclass(KNAME);
+	w->show();
+	w->make_current();
+
 	Fl_Pixmap icon(data);
 	int maxd = (icon.w() > icon.h()) ? icon.w() : icon.h();
 	*xpm = fl_create_offscreen(maxd, maxd);
@@ -288,6 +289,8 @@ void make_pixmap(Pixmap *xpm, const char **data)
 	fl_rectf(0, 0, maxd, maxd);
 	icon.draw(maxd - icon.w(), maxd - icon.h());
 	fl_end_offscreen();
+
+	delete w;
 }
 
 #endif
