@@ -25,16 +25,20 @@ static const char QMXname_[] = "QMX";
 
 static std::vector<std::string>vQMXmodes_;
 static const char *QMXmodes_[] = {
-	"CW-U", "CW-L", "DIGIU", "DIGIL"};
+	"LSB",   "USB", "CW-U", "CW-L", "DIGIU", "DIGIL" };
 static const char QMX_mode_type[] = { 'L', 'U' };
 static const char *QMX_mode_str[] = {
-	"MD3;", "MD7;", "MD6;", "MD9;", NULL };
+	"MD1;", "MD2;", "MD3;", "MD7;", "MD6;", "MD9;", NULL };
 
 static std::vector<std::string>vQMX_BW;
 static const char *QMX_BW[] = {
-  "300", "3200" };
+  "50", "100", "150", "200", "250", "300", "400", "500", 
+  "2500", "2700", "2900", "3200" };
 
 static GUI rig_widgets[]= {
+	{ (Fl_Widget *)btnVol,        2, 125,  50 }, // 0
+	{ (Fl_Widget *)sldrVOLUME,   54, 125, 156 }, // 1
+	{ (Fl_Widget *)sldrRFGAIN,   54, 145, 156 }, // 2
 	{ (Fl_Widget *)NULL,          0,   0,   0 }
 };
 
@@ -45,6 +49,13 @@ void RIG_QMX::initialize()
 
 	modes_ = vQMXmodes_;
 	bandwidths_ = vQMX_BW;
+
+	rig_widgets[0].W = btnVol;
+	rig_widgets[1].W = sldrVOLUME;
+	rig_widgets[2].W = sldrRFGAIN;
+
+//	setVfoAdj(progStatus.vfo_adj);
+
 }
 
 RIG_QMX::RIG_QMX() {
@@ -71,20 +82,26 @@ RIG_QMX::RIG_QMX() {
 	serial_catptt  = true;
 
 	B.imode = A.imode = 1;
-	B.iBW = A.iBW = 0;
+	B.iBW = A.iBW = 6;
 	A.freq = 7070000ULL;
 	B.freq = 14070000ULL;
 
+	has_smeter =
+	has_swr_control =
 	has_mode_control =
 	has_bandwidth_control =
 	has_extras =
 	has_rf_control =
+	has_volume_control =
 	has_ptt_control =
 	has_vfo_adj =
 	has_vox_onoff =
 	has_rit =
 	has_split =
-	can_change_alt_vfo = true;
+	can_change_alt_vfo =
+	has_cw_vol = 
+	has_cw_spot_tone = 
+	has_power_out = true;
 
 	can_synch_clock = true;
 
@@ -99,6 +116,11 @@ static int rit_ = 0;
 static int rit_stat_ = 0;
 
 static char cmdstr[20];
+
+inline void TRACE_SET(std::string func, std::string cmd )
+{
+//	std::cout << ztime() << "::" << func << " sent: " << cmd << std::endl;
+}
 
 inline void TRACE_CMD(std::string func, std::string cmd )
 {
@@ -292,22 +314,107 @@ int RIG_QMX::get_split()
 	return split_;
 }
 
+int RIG_QMX::def_bandwidth(int mode)
+{
+	switch (mode) {
+		case 0: // USB
+			return 8;
+		case 1: // CW
+		case 2: // CW-R
+			return 6;
+		case 3: // FSK-U
+		case 4: // FSK-L
+			return 7;
+	}
+	return 6;
+}
+
 void RIG_QMX::set_bwA(int val)
 {
+	char setcmd[50];
+
+	if (A.imode == 2 || A.imode == 3)
+		snprintf(setcmd, sizeof(setcmd), "MMCW|CW passband=%s;",
+			(val == 0 ? "50" :
+			(val == 1 ? "100" :
+			(val == 2 ? "150" :
+			(val == 3 ? "200" :
+			(val == 4 ? "250" :
+			(val == 5 ? "300" :
+			(val == 6 ? "400" :
+			(val == 7 ? "500" : "400" )))))))));
+
+	else if (A.imode == 0 || A.imode == 1)
+		snprintf(setcmd, sizeof(setcmd), "MMSSB|FILTER RX=%s;",
+			(val == 8 ? "2500" : 
+			(val == 9 ? "2700" :
+			(val == 10 ? "2900" : 
+			(val == 11 ? "3200" : "2700" )))));
+
+	else return;
+
+	cmd = setcmd;
+
+	set_trace(1, "set bwA");
+//	TRACE_SET("set_bwA", cmd);
+
+	sendCommand(cmd);
 }
 
 int RIG_QMX::get_bwA()
 {
 	cmd = "FW;";
-	TRACE_CMD("get_bw", cmd);
+//	TRACE_CMD("get_bw", cmd);
+
 	ret = wait_char(';', 7, 100, "get bw", ASC);
+
 	gett("");
-	if (replystr.find("0300") != std::string::npos) return A.iBW = 0;
-	return A.iBW = 1;
+
+	if (replystr.find("0050;") != std::string::npos) return A.iBW = 0;
+	if (replystr.find("0100;") != std::string::npos) return A.iBW = 1;
+	if (replystr.find("0150;") != std::string::npos) return A.iBW = 2;
+	if (replystr.find("0200;") != std::string::npos) return A.iBW = 3;
+	if (replystr.find("0250;") != std::string::npos) return A.iBW = 4;
+	if (replystr.find("0300;") != std::string::npos) return A.iBW = 5;
+	if (replystr.find("0400;") != std::string::npos) return A.iBW = 6;
+	if (replystr.find("0500;") != std::string::npos) return A.iBW = 7;
+	if (replystr.find("2500;") != std::string::npos) return A.iBW = 8;
+	if (replystr.find("2700;") != std::string::npos) return A.iBW = 9;
+	if (replystr.find("2900;") != std::string::npos) return A.iBW = 10;
+	if (replystr.find("3200;") != std::string::npos) return A.iBW = 11;
+
+	return A.iBW = 6;
 }
 
 void RIG_QMX::set_bwB(int val)
 {
+	char setcmd[50];
+
+	if (B.imode == 2 || B.imode == 3)
+		snprintf(setcmd, sizeof(setcmd), "MMCW|CW passband=%s;",
+			(val == 0 ? "50" :
+			(val == 1 ? "100" :
+			(val == 2 ? "150" :
+			(val == 3 ? "200" :
+			(val == 4 ? "250" :
+			(val == 5 ? "300" :
+			(val == 6 ? "400" :
+			(val == 7 ? "500" : "400" )))))))));
+
+	else if (B.imode == 0 || B.imode == 1)
+		snprintf(setcmd, sizeof(setcmd), "MMSSB|FILTER RX=%s;",
+			(val == 8 ? "2500" : 
+			(val == 9 ? "2700" :
+			(val == 10 ? "2900" : 
+			(val == 11 ? "3200" : "2700" )))));
+
+	else return;
+	cmd = setcmd;
+
+	set_trace(1, "set bwB");
+	TRACE_SET("set_bwB", cmd);
+
+	sendCommand(cmd);
 }
 
 int RIG_QMX::get_bwB()
@@ -316,8 +423,20 @@ int RIG_QMX::get_bwB()
 	TRACE_CMD("get_bw", cmd);
 	ret = wait_char(';', 7, 100, "get bw", ASC);
 	gett("");
-	if (replystr.find("0300") != std::string::npos) return B.iBW = 0;
-	return B.iBW = 1;
+	if (replystr.find("0050;") != std::string::npos) return B.iBW = 0;
+	if (replystr.find("0100;") != std::string::npos) return B.iBW = 1;
+	if (replystr.find("0150;") != std::string::npos) return B.iBW = 2;
+	if (replystr.find("0200;") != std::string::npos) return B.iBW = 3;
+	if (replystr.find("0250;") != std::string::npos) return B.iBW = 4;
+	if (replystr.find("0300;") != std::string::npos) return B.iBW = 5;
+	if (replystr.find("0400;") != std::string::npos) return B.iBW = 6;
+	if (replystr.find("0500;") != std::string::npos) return B.iBW = 7;
+	if (replystr.find("2500;") != std::string::npos) return B.iBW = 8;
+	if (replystr.find("2700;") != std::string::npos) return B.iBW = 9;
+	if (replystr.find("2900;") != std::string::npos) return B.iBW = 10;
+	if (replystr.find("3200;") != std::string::npos) return B.iBW = 11;
+
+	return B.iBW = 6;
 }
 
 // Tranceiver PTT on/off
@@ -339,8 +458,12 @@ void RIG_QMX::set_PTT_control(int val)
 
 }
 
+#include "cwio.h"
+
 int RIG_QMX::get_PTT()
 {
+	if (cwio_process == SEND) return 1;
+
 	cmd = "TQ;";
 	get_trace(1, "get PTT");
 
@@ -411,11 +534,11 @@ int RIG_QMX::get_IF()
 
 void RIG_QMX::set_modeA(int val)
 {
-	if (val < 0 || val > 3) return;
+	if (val < 0 || val > 5) return;
 	cmd = QMX_mode_str[val];
 	set_trace(1, "set mode A");
 
-	TRACE_CMD("set_modeA", cmd);
+	TRACE_SET("set_modeA", cmd);
 
 	sendCommand(cmd);
 	sett("");
@@ -438,8 +561,8 @@ int RIG_QMX::get_modeA()
 
 	TRACE_REP("get_modeA", replystr);
 
-	if (ret < 4) return A.imode;
-	for (int i = 0; i < 4; i++)
+	if (ret < 5) return A.imode;
+	for (int i = 0; i < 6; i++)
 		if (replystr.find(QMX_mode_str[i]) != std::string::npos)
 			return A.imode = i;
 	return A.imode;
@@ -447,11 +570,11 @@ int RIG_QMX::get_modeA()
 
 void RIG_QMX::set_modeB(int val)
 {
-	if (val < 0 || val > 3) return;
+	if (val < 0 || val > 5) return;
 	cmd = QMX_mode_str[val];
 	set_trace(1, "set mode B");
 
-	TRACE_CMD("set_modeB", cmd);
+	TRACE_SET("set_modeB", cmd);
 
 	sendCommand(cmd);
 	sett("");
@@ -464,7 +587,7 @@ void RIG_QMX::set_modeB(int val)
 int RIG_QMX::get_modeB()
 {
 	cmd = "MD;";
-	get_trace(1, "get_modeA");
+	get_trace(1, "get_modeB");
 
 	TRACE_CMD("get_modeB", cmd);
 
@@ -473,8 +596,8 @@ int RIG_QMX::get_modeB()
 
 	TRACE_REP("get_modeB", replystr);
 
-	if (ret < 4) return B.imode;
-	for (int i = 0; i < 4; i++)
+	if (ret < 5) return B.imode;
+	for (int i = 0; i < 6; i++)
 		if (replystr.find(QMX_mode_str[i]) != std::string::npos)
 			return B.imode = i;
 	return B.imode;
@@ -482,11 +605,13 @@ int RIG_QMX::get_modeB()
 
 void RIG_QMX::setVfoAdj(double v)
 {
-	if (v > 1000) v = 1000;
-	if (v < -1000) v = -1000;
-	vfo_ = v;//25000000 + (int)v;
+	v += 25000000;
+
+	if (v > 25001000) v = 25001000;
+	if (v < 24999000) v = 24999000;
+
 	char cmdstr[12];
-	snprintf(cmdstr, sizeof(cmdstr), "Q0%08.0f;", vfo_ + 25000000);
+	snprintf(cmdstr, sizeof(cmdstr), "Q0%08.0f;", v);
 	cmd = cmdstr;
 	set_trace(1, "set TCXO ref freq");
 
@@ -556,10 +681,10 @@ int RIG_QMX::get_vox_onoff()
 	return progStatus.vox_onoff;
 }
 
-void RIG_QMX::set_rf_gain(int val)
+void RIG_QMX::set_volume_control(int val)
 {
 	char szval[20];
-	snprintf(szval, sizeof(szval), "AG%03d", val);
+	snprintf(szval, sizeof(szval), "AG%03d", val * 4);
 	cmd += szval;
 	cmd += ';';
 	set_trace(1, "set vol control");
@@ -573,7 +698,7 @@ void RIG_QMX::set_rf_gain(int val)
 
 }
 
-int RIG_QMX::get_rf_gain()
+int RIG_QMX::get_volume_control()
 {
 	int val = progStatus.volume;
 	cmd = "AG;";
@@ -589,13 +714,43 @@ int RIG_QMX::get_rf_gain()
 	size_t p = replystr.rfind("AG");
 	if (p == std::string::npos) return val;
 	sscanf(replystr.c_str(), "AG%d", &val);
+	return val / 4;
+}
+
+void RIG_QMX::get_vol_min_max_step(int &min, int &max, int &step)
+{
+	min = 0;
+	max = 100;
+	step = 1;
+}
+
+void RIG_QMX::set_rf_gain(int val)
+{
+	cmd = "RG";
+	cmd.append(to_decimal(val,3)).append(";");
+	sendCommand(cmd);
+	showresp(WARN, ASC, "set rf gain", cmd, "");
+}
+
+int  RIG_QMX::get_rf_gain()
+{
+	int val = progStatus.rfgain;
+	cmd = "RG;";
+	get_trace(1, "get_rf_gain");
+	ret = wait_char(';', 6, 100, "get rf gain", ASC);
+	gett("");
+	if (ret < 6) return val;
+
+	size_t p = replystr.rfind("RG");
+	if (p != std::string::npos)
+		val = fm_decimal(replystr.substr(p+2), 3);
 	return val;
 }
 
 void RIG_QMX::get_rf_min_max_step(int &min, int &max, int &step)
 {
 	min = 0;
-	max = 99;
+	max = 100;
 	step = 1;
 }
 
@@ -620,6 +775,72 @@ int RIG_QMX::getRit()
 {
 	get_IF();
 	return rit_;
+}
+
+void RIG_QMX::set_cw_vol()
+{
+	char setcmd[50];
+	snprintf(setcmd, sizeof(setcmd), "MMCW|SIDETONE VOLUME=%d;", progStatus.cw_vol);
+	TRACE_SET( "set_cw_vol", setcmd );
+	sendCommand(setcmd);
+}
+
+int RIG_QMX::get_cw_vol()
+{
+	cmd = "MMCW|SIDETONE VOLUME;";
+	get_trace(1, "get_CW volume");
+	ret = wait_char(';', 6, 100, "get cw vol", ASC);
+	gett("");
+	if (ret < 6) return progStatus.cw_vol;
+	int vol = 0;
+	sscanf(replystr.c_str(), "MM%d;", &vol);
+	return vol;
+}
+
+static int qrp_power;
+
+int RIG_QMX::get_power_out()
+{
+	cmd = "PC;";
+	get_trace(1, "get_power_out");
+	ret = wait_char(';', 5, 100, "get power out", ASC);
+	gett("");
+	if (ret < 5) return 25;
+	int pwr = 40;
+	sscanf(replystr.c_str(), "PC%d;", &pwr);
+	if (pwr > qrp_power) qrp_power = pwr;
+	else qrp_power *= 0.95;
+	return qrp_power;
+}
+
+int RIG_QMX::get_smeter()
+{
+	cmd = "SM;";
+	get_trace(1, "get_smeter");
+	ret = wait_char(';', 6, 100, "get Smeter", ASC);
+	gett("");
+	if (ret < 6) return 50;
+	int mtr = 50;
+	sscanf(replystr.c_str(), "SM%d;", &mtr);
+// gives approximately same scale reading as IC7300 in 400 Hz bandwidth
+	return int(mtr * 0.5);
+}
+
+int qrp_swr = 100;
+
+int RIG_QMX::get_swr()
+{
+	cmd = "Sw;";
+	get_trace(1, "get_smeter");
+	ret = wait_char(';', 6, 100, "get Smeter", ASC);
+	gett("");
+	if (ret < 6) return (qrp_swr - 1) * 50 / 200;
+	int mtr = 0;
+	sscanf(replystr.c_str(), "Sw%d;", &mtr);
+// mtr ranges from 1.0 to infinity, 3.0 is mid scale
+	if (mtr > qrp_swr) qrp_swr = mtr;
+	else qrp_swr *= 0.95;
+	return (qrp_swr- 1) * 50 / 200;
 }
 
 // ---------------------------------------------------------------------

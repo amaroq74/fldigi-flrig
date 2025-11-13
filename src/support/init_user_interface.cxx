@@ -825,7 +825,8 @@ void TRACED(init_Generic_Tabs)
 		selrig->has_cw_weight ||
 		selrig->has_cw_keyer ||
 		selrig->has_cw_spot ||
-		selrig->has_cw_spot_tone ) {
+		selrig->has_cw_spot_tone ||
+		selrig->has_cw_vol ) {
 
 		if (selrig->has_cw_wpm) {
 			int min, max;
@@ -882,7 +883,7 @@ void TRACED(init_Generic_Tabs)
 			spnr_cw_vol->minimum(min);
 			spnr_cw_vol->maximum(max);
 			spnr_cw_vol->step(step);
-			selrig->get_cw_vol();
+			progStatus.cw_vol = selrig->get_cw_vol();
 			spnr_cw_vol->value(progStatus.cw_vol);
 		} else
 			spnr_cw_vol->hide();

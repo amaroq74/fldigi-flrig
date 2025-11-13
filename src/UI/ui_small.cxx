@@ -1489,8 +1489,8 @@ Fl_Double_Window *tabs_window()
 			spnr_cw_spot_tone->align(FL_ALIGN_BOTTOM | FL_ALIGN_CENTER);
 
 			spnr_cw_vol= new Hspinner(
-				spnr_cw_spot_tone->w() + spnr_cw_spot_tone->x() + 4, 32,
-				85, 20, _("CW vol"), 18);
+				spnr_cw_spot_tone->w() + spnr_cw_spot_tone->x() + 8, 32,
+				80, 20, _("CW vol"), 18);
 			spnr_cw_vol->tooltip(_("CW volume"));
 			spnr_cw_vol->type(1);
 			spnr_cw_vol->minimum(0);

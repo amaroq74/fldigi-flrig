@@ -63,6 +63,12 @@ public:
 
 	int  get_IF();
 
+	int  get_power_out();
+	int  power_scale() { return 10; }
+
+	int  get_smeter();
+	int  get_swr();
+
 	void set_modeA(int val);
 	int  get_modeA();
 	void set_modeB(int val);
@@ -75,16 +81,21 @@ public:
 	void set_vox_onoff();
 	int  get_vox_onoff();
 
-//	void set_volume_control(int val);
-//	int  get_volume_control();
-//	void get_vol_min_max_step(int &min,  int &max, int &step);
+	void set_volume_control(int val);
+	int  get_volume_control();
+	void get_vol_min_max_step(int &min,  int &max, int &step);
 
 	void set_rf_gain(int val);
 	int  get_rf_gain();
 	void get_rf_min_max_step(int &min, int &max, int &step);
 
+	int  def_bandwidth(int mode);
+
 	void setRit(int val);
 	int  getRit();
+
+	void set_cw_vol();
+	int  get_cw_vol();
 
 	void sync_clock(char *tm);
 };
