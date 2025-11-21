@@ -35,25 +35,31 @@ const char IC7410name_[] = "IC-7410";
 static std::vector<std::string>IC7410modes_;
 static const char *vIC7410modes_[] =
 {
-	"LSB", "USB", "AM", "CW", "RTTY", "FM",  "CW-R", "RTTY-R", 
+	"LSB", "USB", "AM", "CW", 
+	"RTTY", "FM",  "CW-R", "RTTY-R", 
 	"LSB-D", "USB-D", "FM-D"};
 
 enum {
-	LSB7410, USB7410, AM7410, CW7410, RTTY7410, FM7410,  CWR7410, RTTYR7410,
+	LSB7410, USB7410, AM7410, CW7410,
+	RTTY7410, FM7410,  CWR7410, RTTYR7410,
 	LSBD7410, USBD7410, FMD7410 };
 
 const char IC7410_mode_type[] = {
-	'L', 'U', 'U', 'L', 'L', 'U', 'L', 'U', 'L', 'U', 'U' };
+	'L', 'U', 'U', 'L',
+	'L', 'U', 'L', 'U',
+	'L', 'U', 'U' };
 
 const char IC7410_mode_nbr[] = {
 	0x00, // Select the LSB mode
 	0x01, // Select the USB mode
 	0x02, // Select the AM mode
 	0x03, // Select the CW mode
+
 	0x04, // Select the RTTY mode
 	0x05, // Select the FM mode
 	0x07, // Select the CW-R mode
 	0x08, // Select the RTTY-R mode
+
 	0x00, // select lsb-data mode
 	0x01, // select usb-data mode
 	0x05, // select fm-data mode
@@ -175,8 +181,8 @@ RIG_IC7410::RIG_IC7410() {
 
 	widgets = IC7410_widgets;
 
-	has_pbt_controls = true;
-	has_FILTER = true;
+	has_pbt_controls =
+	has_FILTER =
 
 	has_extras =
 
@@ -190,11 +196,14 @@ RIG_IC7410::RIG_IC7410() {
 	has_vox_anti =
 	has_vox_hang =
 
+	has_preamp_control =
+	has_attenuator_control =
+
 	has_compON =
 	has_compression =
 
 	has_micgain_control =
-	has_bandwidth_control = true;
+	has_bandwidth_control =
 
 	has_band_selection = true;
 
@@ -243,18 +252,32 @@ void RIG_IC7410::set_modeA(int val)
 	cmd = pre_to;
 	cmd += '\x06';
 	cmd += IC7410_mode_nbr[val];
-	cmd += filA;
+//	cmd += filA;
 	cmd.append( post );
 	waitFB("set mode A");
+
+	std::stringstream ss;
+	ss << "set_modeA(" << IC7410modes_[val] << ") " << std::endl;
+	ss << "  cmd: " << str2hex( cmd.c_str(), cmd.length() ) << std::endl;
+	ss << "  rsp: " << str2hex(replystr.c_str(), replystr.length());
+	set_trace(1, ss.str().c_str());
+
 // digital set / clear
+	cmd = pre_to;
+	cmd += '\x1A'; cmd += '\x06';
 	if (val == LSBD7410 || val == USBD7410 || val == FMD7410) {
-		cmd = pre_to;
-		cmd += '\x1A'; cmd += '\x06';
-		cmd += '\x01'; cmd += '\x01';
-		cmd += filA;
-		cmd.append( post);
-		waitFB("set digital");
+		cmd += '\x01'; cmd += filA;
+	} else {
+		cmd += '\x00'; cmd += '\x00';
 	}
+	cmd.append( post);
+	waitFB("set digital");
+
+	ss.clear();
+	ss << "set_data_modeA()" << std::endl;
+	ss << "  cmd: " << str2hex( cmd.c_str(), cmd.length()) << std::endl;
+	ss << "  rsp: " << str2hex( replystr.c_str(), replystr.length() ) << std::endl;
+	set_trace(1, ss.str().c_str());
 }
 
 static const char *szfilter[] = {"1", "2", "3"};
@@ -303,17 +326,32 @@ void RIG_IC7410::set_modeB(int val)
 	cmd = pre_to;
 	cmd += '\x06';
 	cmd += IC7410_mode_nbr[val];
-	cmd += filB;
+//	cmd += filA;
 	cmd.append( post );
 	waitFB("set mode B");
+
+	std::stringstream ss;
+	ss << "set_modeB(" << IC7410modes_[val] << ") " << std::endl;
+	ss << "  cmd: " << str2hex( cmd.c_str(), cmd.length() ) << std::endl;
+	ss << "  rsp: " << str2hex(replystr.c_str(), replystr.length());
+	set_trace(1, ss.str().c_str());
+
+// digital set / clear
+	cmd = pre_to;
+	cmd += '\x1A'; cmd += '\x06';
 	if (val == LSBD7410 || val == USBD7410 || val == FMD7410) {
-		cmd = pre_to;
-		cmd += '\x1A'; cmd += '\x06';
-		cmd += '\x01'; cmd += '\x01';
-		cmd += filB;
-		cmd.append( post);
-		waitFB("set digital");
+		cmd += '\x01'; cmd += filA;
+	} else {
+		cmd += '\x00'; cmd += '\x00';
 	}
+	cmd.append( post);
+	waitFB("set digital");
+
+	ss.clear();
+	ss << "set_data_modeB()" << std::endl;
+	ss << "  cmd: " << str2hex( cmd.c_str(), cmd.length()) << std::endl;
+	ss << "  rsp: " << str2hex( replystr.c_str(), replystr.length() ) << std::endl;
+	set_trace(1, ss.str().c_str());
 }
 
 int RIG_IC7410::get_modeB()
@@ -469,6 +507,12 @@ void RIG_IC7410::set_mic_gain(int v)
 	waitFB("set mic gain");
 }
 
+int RIG_IC7410::next_attenuator()
+{
+	if (atten_state) return 0;
+	return 1;
+}
+
 void RIG_IC7410::set_attenuator(int val)
 {
 	int cmdval = 0;
@@ -502,6 +546,69 @@ int RIG_IC7410::get_attenuator()
 		}
 	}
 	return atten_level;
+}
+
+int RIG_IC7410::next_preamp()
+{
+	switch (preamp_state) {
+		case 0: return 1;
+		case 1: return 2;
+		default:
+		case 2: return 0;
+	}
+	return 0;
+}
+
+void RIG_IC7410::set_preamp(int val)
+{
+	cmd = pre_to;
+	cmd += '\x16';
+	cmd += '\x02';
+
+	if (val == 0) {
+		preamp_state = 0;
+	} else if (val == 1) {
+		preamp_state = 1;
+	} else {
+		preamp_state = 2;
+	}
+	cmd += preamp_state;
+
+	cmd.append( post );
+	waitFB("set Pre");
+
+	std::stringstream ss;
+	ss << "set_preamp(" << val << ") " << str2hex(replystr.data(), replystr.length());
+	set_trace(1, ss.str().c_str());
+
+	if (val)
+		set_attenuator(0);
+
+}
+
+int RIG_IC7410::get_preamp()
+{
+	std::string cstr = "\x16\x02";
+	std::string resp = pre_fm;
+	resp.append(cstr);
+	cmd = pre_to;
+	cmd.append(cstr);
+	cmd.append( post );
+	if (waitFOR(8, "get Pre")) {
+		size_t p = replystr.rfind(resp);
+		if (p != std::string::npos) {
+			if (replystr[p+6] == 0x01) {
+				preamp_state = 1;
+			} else if (replystr[p+6] == 0x02) {
+				preamp_state = 2;
+			} else {
+				preamp_state = 0;
+			}
+		}
+	}
+	get_trace(2, "get_preamp()", str2hex(replystr.c_str(), replystr.length()));
+
+	return preamp_state;
 }
 
 void RIG_IC7410::set_compression(int on, int val)

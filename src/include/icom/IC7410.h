@@ -50,6 +50,11 @@ public:
 
 	void set_attenuator( int val );
 	int  get_attenuator();
+	int  next_attenuator();
+
+	void set_preamp(int val);
+	int get_preamp();
+	int next_preamp();
 
 	void set_mic_gain(int v);
 
