@@ -116,332 +116,201 @@ void set_combo_value()
 	select_fskioPORT->value(progStatus.FSK_PORT.c_str());
 }
 
-//======================================================================
-// WIN32 init_port_combos
-//======================================================================
+#if defined ( __WIN32__ )
 
-#ifdef __WIN32__
-static bool open_serial(const char* dev)
-{
-	char targetPath[1024];
-	DWORD result = QueryDosDevice(dev, targetPath, sizeof(targetPath)/sizeof(targetPath[0]));
-	return result != 0;
-}
+void init_win_port_combos() {
+	char lpTargetPath[1024]; // Buffer to store the target path of the COM port
+	DWORD dwResult;
 
-#  define TTY_MAX 256
-void init_port_combos()
-{
-	clear_combos();
+// Iterate through potential COM port names (COM1 to COM255)
+	for (int i = 1; i <= 255; i++) {
+		char szComName[10];
+		snprintf(szComName, sizeof(szComName), "COM%d", i);
 
-	char ttyname[21];
-	const char tty_fmt[] = "COM%u";
+// Query the device for its target path
+		dwResult = QueryDosDeviceA(szComName, lpTargetPath, sizeof(lpTargetPath));
 
-	for (unsigned j = 1; j < TTY_MAX; j++) {
-		char sztr[1024];
-		snprintf(ttyname, sizeof(ttyname), tty_fmt, j);
-		snprintf(sztr, sizeof(sztr), "Looking for %s", ttyname);
-		ser_trace(1, sztr);
-		if (!open_serial(ttyname))
-			continue;
-		snprintf(ttyname, sizeof(ttyname), "COM%u", j);
-		LOG_WARN("Found serial port %s", ttyname);
-		add_combos(ttyname);
+// If QueryDosDevice returns a non-zero value, it means the device exists
+		if (dwResult != 0) add_combos( szComName );
 	}
-	set_combo_value();
 }
-#endif //__WIN32__
 
-//======================================================================
-// Linux init_port_combos
-//======================================================================
+#else 
 
-#ifdef __linux__
-#ifndef PATH_MAX
+#if defined (__APPLE__)
+
+#  include <CoreFoundation/CoreFoundation.h>
+#  include <IOKit/IOKitLib.h>
+#  include <IOKit/serial/IOSerialKeys.h>
+#  include <IOKit/IOBSD.h>
+
+void init_mac_port_combos() {
+
+	const char* tty_fmt[] = {
+		"/dev/cu.*",
+		"/dev/tty.*"
+	};
+
+// Create a matching dictionary: 
+//   This dictionary specifies the criteria for the serial ports you are 
+//   looking for. You typically match on kIOSerialBSDServiceValue.
+
+	CFMutableDictionaryRef matchingDict = IOServiceMatching(kIOSerialBSDServiceValue);
+
+// Get an iterator for matching services:
+//   Use IOServiceGetMatchingServices to find all services that match your dictionary.
+
+	io_iterator_t serialPortIterator;
+	kern_return_t kernResult = IOServiceGetMatchingServices
+									(kIOMasterPortDefault,
+									matchingDict,
+									&serialPortIterator);
+	if (KERN_SUCCESS != kernResult) {
+		LOG_ERROR( "KERNAL ERROR" );
+		return;
+	}
+
+// Iterate through the services: Loop through the serialPortIterator to 
+//   get individual serial port devices.
+
+	io_object_t serialPortService;
+	while ((serialPortService = IOIteratorNext(serialPortIterator))) {
+		// Get the callout device path (e.g., /dev/cu.usbserial-XXXX)
+		CFStringRef calloutPath = (CFStringRef)IORegistryEntryCreateCFProperty(
+									 serialPortService,
+									 CFSTR(kIOCalloutDeviceKey),
+									 kCFAllocatorDefault, 0);
+		if (calloutPath) {
+
+// Convert CFStringRef to C string and print or store
+
+			char pathBuffer[1024];
+			if ( CFStringGetCString(
+					calloutPath,
+					pathBuffer,
+					sizeof(pathBuffer),
+					kCFStringEncodingUTF8)) {
+				add_combos( pathBuffer );
+			}
+			CFRelease(calloutPath);
+		}
+		IOObjectRelease(serialPortService); // Release the service object
+	}
+
+// Release the iterator.
+
+	IOObjectRelease(serialPortIterator);
+
+}
+
+//end defined ( __APPLE__ )
+
+# else
+
+# if defined ( __OpenBSD__ ) || defined ( __NetBSD__ )
+
+void init_bsd_port_combos() {
+
 #  define PATH_MAX 1024
-#endif
-#  define TTY_MAX 8
 
-void init_port_combos()
-{
 	struct stat st;
+
 	char ttyname[PATH_MAX + 1];
-	bool ret = false;
 
-	DIR* sys = NULL;
-	char cwd[PATH_MAX] = { '.', '\0' };
+#if definted ( __NetBSD__ )
+	const char* tty_fmt[] = {
+		"/dev/tty%2.2u"
+	};
+#else
+	const char* tty_fmt[] = {
+		"/dev/ttyd%u",
+		"/dev/ttyU%u",
+	};
+#endif
 
-	clear_combos();
-
-	LOG_QUIET("%s","Search for serial ports");
+#  define TTY_MAX 4
 
 	glob_t gbuf;
-
-	glob("/dev/pts/*", 0, NULL, &gbuf);
-	for (size_t j = 0; j < gbuf.gl_pathc; j++) {
-		if ( !(stat(gbuf.gl_pathv[j], &st) == 0 && S_ISCHR(st.st_mode)) ||
-		     strstr(gbuf.gl_pathv[j], "modem") )
-			continue;
-		LOG_QUIET("Found virtual serial port %s", gbuf.gl_pathv[j]);
-			add_combos(gbuf.gl_pathv[j]);
-	}
-	globfree(&gbuf);
-#ifndef __FreeBSD__
 	glob("/dev/serial/by-id/*", 0, NULL, &gbuf);
 	for (size_t j = 0; j < gbuf.gl_pathc; j++) {
 		if ( !(stat(gbuf.gl_pathv[j], &st) == 0 && S_ISCHR(st.st_mode)) ||
 		     strstr(gbuf.gl_pathv[j], "modem") )
 			continue;
-		LOG_QUIET("Found serial port %s", gbuf.gl_pathv[j]);
-			add_combos(gbuf.gl_pathv[j]);
-	}
-	globfree(&gbuf);
-#endif
-	glob("/dev/tty*", 0, NULL, &gbuf);
-	for (size_t j = 0; j < gbuf.gl_pathc; j++) {
-		if ( !(stat(gbuf.gl_pathv[j], &st) == 0 && S_ISCHR(st.st_mode)) ||
-		     strstr(gbuf.gl_pathv[j], "modem") )
-			continue;
-		LOG_QUIET("Found serial port %s", gbuf.gl_pathv[j]);
-		add_combos(gbuf.gl_pathv[j]);
+		add_combos( gbuf.gl_pathv[j] );
 	}
 	globfree(&gbuf);
 
-	glob("/dev/tnt*", 0, NULL, &gbuf);
-	for (size_t j = 0; j < gbuf.gl_pathc; j++) {
-		if ( !(stat(gbuf.gl_pathv[j], &st) == 0 && S_ISCHR(st.st_mode)) ||
-		     strstr(gbuf.gl_pathv[j], "modem") )
-			continue;
-		LOG_QUIET("Found serial port %s", gbuf.gl_pathv[j]);
-		add_combos(gbuf.gl_pathv[j]);
-	}
-	globfree(&gbuf);
-
-	if (getcwd(cwd, sizeof(cwd)) == NULL) goto out;
-
-	if (chdir("/sys/class/tty") == -1) goto check_cuse;
-	if ((sys = opendir(".")) == NULL) goto check_cuse;
-
-	ssize_t len;
-	struct dirent* dp;
-
-	LOG_QUIET("%s", "Searching /sys/class/tty/");
-
-	while ((dp = readdir(sys))) {
-#  ifdef _DIRENT_HAVE_D_TYPE
-		if (dp->d_type != DT_LNK)
-			continue;
-#  endif
-		if ((len = readlink(dp->d_name, ttyname, sizeof(ttyname)-1)) == -1)
-			continue;
-		ttyname[len] = '\0';
-		if (!strstr(ttyname, "/devices/virtual/")) {
-			snprintf(ttyname, sizeof(ttyname), "/dev/%s", dp->d_name);
-			if (stat(ttyname, &st) == -1 || !S_ISCHR(st.st_mode))
-				continue;
-			LOG_QUIET("Found serial port %s", ttyname);
-			add_combos(ttyname);
-			ret = true;
-		}
-	}
-
-check_cuse:
-	if (sys) {
-		closedir(sys);
-		sys = NULL;
-	}
-	if (chdir("/sys/class/cuse") == -1) goto out;
-	if ((sys = opendir(".")) == NULL) goto out;
-
-	LOG_QUIET("%s", "Searching /sys/class/cuse/");
-
-	while ((dp = readdir(sys))) {
-#  ifdef _DIRENT_HAVE_D_TYPE
-		if (dp->d_type != DT_LNK)
-			continue;
-#  endif
-		if ((len = readlink(dp->d_name, ttyname, sizeof(ttyname)-1)) == -1)
-			continue;
-		ttyname[len] = '\0';
-		if (strstr(ttyname, "/devices/virtual/") && !strncmp(dp->d_name, "mhuxd", 5)) {
-			char *name = strdup(dp->d_name);
-			if(!name)
-				continue;
-			char *p = strchr(name, '!');
-			if(p)
-				*p = '/';
-			snprintf(ttyname, sizeof(ttyname), "/dev/%s", name);
-			free(name);
-			if (stat(ttyname, &st) == -1 || !S_ISCHR(st.st_mode))
-				continue;
-			LOG_QUIET("Found serial port %s", ttyname);
-			add_combos(ttyname);
-			ret = true;
-		}
-	}
-
-out:
-	std::string tty_virtual = HomeDir;
-	tty_virtual.append("vdev");
-
-	LOG_QUIET("Searching %s", tty_virtual.c_str());
-
-	tty_virtual.append("/ttyS%u");
-	for (unsigned j = 0; j < TTY_MAX; j++) {
-		snprintf(ttyname, sizeof(ttyname), tty_virtual.c_str(), j);
-		if ( !(stat(ttyname, &st) == 0 && S_ISCHR(st.st_mode)) )
-			continue;
-		LOG_QUIET("Found serial port %s", ttyname);
-		add_combos(ttyname);
-	}
-
-	if (sys) closedir(sys);
-	if (chdir(cwd) == -1) return;
-	if (ret) { // do we need to fall back to the probe code below?
-		set_combo_value();
-		return;
-	}
-
-	const char* tty_fmt[] = {
-#ifndef __FreeBSD__
-		"/dev/ttyUSB%u",
-		"/dev/ttyS%u",
-		"/dev/usb/ttyUSB%u"
-#endif
-#ifdef __FreeBSD__
-		"/dev/cuau%u",
-		"/dev/cuaU%u",
-#endif
-	};
-	LOG_QUIET("%s", "Serial port discovery via 'stat'");
 	for (size_t i = 0; i < sizeof(tty_fmt)/sizeof(*tty_fmt); i++) {
 		for (unsigned j = 0; j < TTY_MAX; j++) {
 			snprintf(ttyname, sizeof(ttyname), tty_fmt[i], j);
 			if ( !(stat(ttyname, &st) == 0 && S_ISCHR(st.st_mode)) )
 				continue;
-
-			LOG_WARN("Found serial port %s", ttyname);
-			add_combos(ttyname);
+			add_combos( ttyname );
 		}
-	}
 
-	set_combo_value();
 }
-#endif // __linux__
 
-//======================================================================
-// APPLE init_port_combos
-//======================================================================
+# else // must be good old Linux
 
-#ifdef __APPLE__
-#ifndef PATH_MAX
-#  define PATH_MAX 1024
-#endif
+void init_linux_port_combos() {
 
-void init_port_combos()
-{
-	std::string pname;
-	const char* tty_fmt[] = {
-		"/dev/cu.*",
-		"/dev/tty.*"
-	};
 	struct stat st;
-
-	clear_combos();
 	glob_t gbuf;
-	bool is_serial;
 
-	clear_combos();
-	for (size_t i = 0; i < sizeof(tty_fmt)/sizeof(*tty_fmt); i++) {
-		glob(tty_fmt[i], 0, NULL, &gbuf);
-		for (size_t j = 0; j < gbuf.gl_pathc; j++) {
-			int ret1 = !stat(gbuf.gl_pathv[j], &st);
-			int ret2 = S_ISCHR(st.st_mode);
-			if (ret1) {
-				LOG_INFO("Serial port %s", gbuf.gl_pathv[j]);
-				LOG_INFO("  device mode:     %X", st.st_mode);
-				LOG_INFO("  char device?     %s", ret2 ? "Y" : "N");
-			} else
-				LOG_INFO("%s does not return stat query", gbuf.gl_pathv[j]);
-			if ( (ret1 && ret2 ) || strstr(gbuf.gl_pathv[j], "modem") )
-				add_combos (gbuf.gl_pathv[j]);
-		}
-		globfree(&gbuf);
+	glob("/dev/serial/by-id/*", 0, NULL, &gbuf);
+	for (size_t j = 0; j < gbuf.gl_pathc; j++) {
+		if ( !(stat(gbuf.gl_pathv[j], &st) == 0 && S_ISCHR(st.st_mode)) ||
+		     strstr(gbuf.gl_pathv[j], "modem") )
+			continue;
+		add_combos( gbuf.gl_pathv[j] );
 	}
+	globfree(&gbuf);
 
-	set_combo_value();
-}
-#endif //__APPLE__
-//======================================================================
-
-//======================================================================
-// FreeBSD init_port_combos
-//======================================================================
-
-#ifdef __FreeBSD__
-#ifndef PATH_MAX
-#  define PATH_MAX 1024
-#endif
-#  define TTY_MAX 8
-
-void init_port_combos()
-{
-	int retval;
-	struct stat st;
-	char ttyname[PATH_MAX + 1];
 	const char* tty_fmt[] = {
-		"/dev/ttyd%u"
+		"/dev/ttyS%u",
+		"/dev/ttyUSB%u",
+		"/dev/usb/ttyUSB%u",
+		"/dev/ttyACM%u",
+		"/dev/usb/ttyACM%u",
+		"/dev/rfcomm%u",
+		"/opt/vttyS%u"
 	};
-
-	clear_combos();
+	char ttyname[512];
 
 	for (size_t i = 0; i < sizeof(tty_fmt)/sizeof(*tty_fmt); i++) {
-		for (unsigned j = 0; j < TTY_MAX; j++) {
+		for (unsigned j = 0; j < 8; j++) {
 			snprintf(ttyname, sizeof(ttyname), tty_fmt[i], j);
 			if ( !(stat(ttyname, &st) == 0 && S_ISCHR(st.st_mode)) )
 				continue;
-			LOG_WARN("Found serial port %s", ttyname);
-			add_combos(ttyname);
+			add_combos ( ttyname );
 		}
 	}
 }
-#endif //__FreeBSD__
-//======================================================================
 
-//======================================================================
-// OpenBSD init_port_combos
-//======================================================================
-
-#ifdef __OpenBSD__
-
-#ifndef PATH_MAX
-#  define PATH_MAX 1024
+#  endif
+# endif
 #endif
-#  define TTY_MAX 8
 
 void init_port_combos()
 {
-	int retval;
-	struct stat st;
-	char ttyname[PATH_MAX + 1];
-	const char* tty_fmt[] = {
-		"/dev/ttyd%u",
-		"/dev/ttyU%u",
-	}
-
 	clear_combos();
 
-	for (size_t i = 0; i < sizeof(tty_fmt)/sizeof(*tty_fmt); i++) {
-		for (unsigned j = 0; j < TTY_MAX; j++) {
-			snprintf(ttyname, sizeof(ttyname), tty_fmt[i], j);
-			if ( !(stat(ttyname, &st) == 0 && S_ISCHR(st.st_mode)) )
-				continue;
-			LOG_WARN("Found serial port %s", ttyname);
-			add_combos(ttyname);
-		}
-	}
+#if defined (__WIN32__)
+	init_win_port_combos();
+#else
+# if defined (__APPLE__)
+	init_mac_port_combos();
+# else
+#  if defined(__OpenBSD__) || defined(__NetBSD__) 
+	init_bsd_port_combos();
+#  else
+	init_linux_port_combos();
+#  endif
+# endif
+#endif
+
 }
 
-#endif //__OpenBSD__
 //======================================================================
 
 void cbCIVdefault()

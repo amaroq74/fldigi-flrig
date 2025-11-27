@@ -84,7 +84,7 @@ Cserial::~Cserial() {
 // Argument		 : c_std::string strPortName
 ///////////////////////////////////////////////////////
 bool Cserial::CheckPort(std::string dev)  {
-	int testfd = open( dev.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+	int testfd = open( dev.c_str(), O_RDWR | O_NOCTTY | O_NDELAY, O_EXCL);
 	if (testfd < 0) {
 		snprintf(traceinfo, sizeof(traceinfo), "%s checkPort() FAILED", dev.c_str());
 		ser_trace(1, traceinfo);
@@ -206,7 +206,7 @@ void Cserial::set_attributes()
 bool Cserial::OpenPort()  {
 
 	if (IsOpen()) ClosePort();
-	if ((fd = open( device.c_str(), O_RDWR | O_NOCTTY )) < 0) { // | O_NDELAY )) < 0) {
+	if ((fd = open( device.c_str(), O_RDWR | O_NOCTTY | O_EXCL )) < 0) { // | O_NDELAY )) < 0) {
 		snprintf(traceinfo, sizeof(traceinfo), "%s OpenPort() FAILED", device.c_str());
 		ser_trace(1, traceinfo);
 		return false;
