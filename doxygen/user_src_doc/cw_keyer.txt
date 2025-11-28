@@ -20,9 +20,12 @@ Open the keyer dialog
 <ul>
 <li>WPM slider selects the keyer speed.</li>
 <li>Clear - clears the text in the transmit buffer.</li>
+<li>SHIFT Clear - clears the text in the sent characters display</li>
 <li>Transmit text will marquee to the left as each character is transmitted.</li>
+<li>As each character is sent, it is appended to the sent display.</li>
 <li>Send/Pause button toggles sending text.</li>
-<li>Macro buttons / function keys load transmit buffer with canned message.
+<li>Macro buttons / function keys load transmit buffer with canned message.</li>
+</ul>
 <ul>
 <li>Left click to load macro contents into transmit buffer.</li>
 <li>Control left click to open macro editor dialog.</li>
