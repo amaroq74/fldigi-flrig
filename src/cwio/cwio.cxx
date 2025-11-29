@@ -294,6 +294,16 @@ void update_txt_to_send(void *)
 	txt_to_send->redraw();
 }
 
+void update_sent_text(void *loc)
+{
+	char ch[2];
+	ch[1] = 0;
+	ch[0] = *(char *)loc;
+	if (ch[0] == ']') return;
+	cw_sent_text->insert( ch );
+	cw_sent_text->redraw();
+}
+
 void terminate_sending(void *)
 {
 	if (progStatus.cwioPTT)
@@ -303,7 +313,7 @@ void terminate_sending(void *)
 
 void sending_text()
 {
-	char c = 0;
+	static char c = 0;
 	if (progStatus.cwioPTT) {
 		doPTT(1);
 		MilliSleep(50);
@@ -317,6 +327,7 @@ void sending_text()
 				c = snd[0];
 				snd.erase(0,1);
 				Fl::awake(update_txt_to_send);
+				Fl::awake(update_sent_text, &c);
 			} else {
 				if (!cwio_text.empty()) {
 					c = cwio_text[0];
@@ -641,6 +652,13 @@ void cwio_new_text(std::string txt)
 void cwio_clear_text()
 {
 	txt_to_send->value("");
+	txt_to_send->redraw();
+}
+
+void cwio_clear_sent_text()
+{
+	cw_sent_buffer->text("");
+	cw_sent_text->redraw();
 }
 
 void msg_cb(int n)

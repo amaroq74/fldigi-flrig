@@ -168,6 +168,7 @@ extern void FSK_stop_thread();
 extern void FSK_add(std::string);
 extern void FSK_send_text(bool);
 extern void FSK_clear_text();
+extern void FSK_clear_sent_text();
 
 extern void FSK_msg_cb(int n);
 extern void FSK_label_cb(int n);

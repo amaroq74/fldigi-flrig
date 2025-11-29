@@ -57,6 +57,7 @@ extern void stop_cwio_thread();
 extern void add_cwio(std::string);
 extern void send_text(bool);
 extern void cwio_clear_text();
+extern void cwio_clear_sent_text();
 
 extern void msg_cb(int n);
 extern void label_cb(int n);

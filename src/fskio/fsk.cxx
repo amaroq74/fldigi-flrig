@@ -156,6 +156,15 @@ void update_fsk_txt_to_send(void *v)
 	FSK_txt_to_send->value(fsk->str_buff.c_str());
 }
 
+void update_fsk_sent_text(void *loc)
+{
+	char ch[2];
+	ch[1] = 0;
+	ch[0] = *(char *)loc;
+	FSK_sent_text->insert( ch );
+	FSK_sent_text->redraw();
+}
+
 void btn_fskioSEND_ON(void *v)
 {
 	btn_fskioSEND->value(1);
@@ -374,6 +383,7 @@ void FSK::loop_xmt()
 		send_char(c);
 	str_buff.erase(0,1);
 	Fl::awake(update_fsk_txt_to_send, this);
+	Fl::awake(update_fsk_sent_text, &c);
 	return;
 }
 
@@ -454,6 +464,13 @@ void FSK_clear_text()
 	guard_lock lck(&fskio_text_mutex);
 	if (fsk_instance) fsk_instance->str_buff.clear();
 	FSK_txt_to_send->value("");
+	FSK_txt_to_send->redraw();
+}
+
+void FSK_clear_sent_text()
+{
+	FSK_sent_buffer->text("");
+	FSK_sent_text->redraw();
 }
 
 void FSK_msg_cb(int n)
