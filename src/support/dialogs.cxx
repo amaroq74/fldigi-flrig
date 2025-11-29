@@ -419,7 +419,7 @@ void open_ptt_tab()
 
 void open_gpio_tab()
 {
-	select_tab(_("PTT-GPIO"));
+	select_tab(_("GPIO PTT & CW"));
 }
 
 void open_other_tab()

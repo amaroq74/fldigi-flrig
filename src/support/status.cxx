@@ -515,6 +515,15 @@ status progStatus = {
 	0,			// int	gpio_on;
 	0,			// int	gpio_pulse_width;
 
+// gpio deamon
+	"",			// std::string		gpio_ptt_device
+	-1,			// int		gpio_ptt_line
+	0,			// int		enable_gpio_ptt
+
+	"",			// std::string		gpio_cw_device
+	-1,			// int		gpio_cw_line
+	0,			// int		enable_gpio_cw
+
 // KXPA 100 presence
 //	0,			// int kxpa on line = 1
 
@@ -1494,6 +1503,14 @@ void status::saveLastState()
 	spref.set("gpio_on", gpio_on);
 	spref.set("gpio_pulse_width", gpio_pulse_width);
 
+	spref.set("gpio_ptt_device", gpio_ptt_device.c_str());
+	spref.set("gpio_ptt_line", gpio_ptt_line);
+	spref.set("enable_gpio_ptt", enable_gpio_ptt);
+
+	spref.set("gpio_cw_device", gpio_cw_device.c_str());
+	spref.set("gpio_cw_line", gpio_cw_line);
+	spref.set("enable_gpio_cw", enable_gpio_cw);
+
 //	spref.set("kxpa", kxpa);
 
 	spref.set("cwioWPM", cwioWPM);
@@ -2274,6 +2291,16 @@ bool status::loadXcvrState(std::string xcvr)
 		spref.get("enable_gpio", enable_gpio, enable_gpio);
 		spref.get("gpio_on", gpio_on, gpio_on);
 		spref.get("gpio_pulse_width", gpio_pulse_width, gpio_pulse_width);
+
+		spref.get("gpio_ptt_device", defbuffer, "", MAX_DEFBUFFER_SIZE);
+		gpio_ptt_device = defbuffer;
+		spref.get("gpio_ptt_line", gpio_ptt_line, gpio_ptt_line);
+		spref.get("enable_gpio_ptt", enable_gpio_ptt, enable_gpio_ptt);
+
+		spref.get("gpio_cw_device", defbuffer, "", MAX_DEFBUFFER_SIZE);
+		gpio_cw_device = defbuffer;
+		spref.get("gpio_cw_line", gpio_cw_line, gpio_cw_line);
+		spref.get("enable_gpio_cw", enable_gpio_cw, enable_gpio_cw);
 
 //		spref.get("kxpa", kxpa, kxpa);
 

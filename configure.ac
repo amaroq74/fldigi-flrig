@@ -117,6 +117,12 @@ AC_FLRIG_PKG_CHECK([flxmlrpc], [flxmlrpc >= 1.0.1],
   [yes], [yes], [use external flxmlrpc library @<:@autodetect@:>@],
   [ENABLE_FLXMLRPC])
 
+### libgpiod
+# Set ac_cv_libgpiod to yes/no
+# Define USE_LIBGPIOD in config.h
+# Substitute LIBGPIOD_CFLAGS and LIBGPIOD_LIBS in Makefile
+AC_FLRIG_PKG_CHECK([libgpiod], [libgpiod >= 2.2.1], [no], [yes])
+
 ### build info
 # Define various build variables in config.h
 AC_FLRIG_BUILD_INFO
@@ -141,6 +147,8 @@ Configuration summary:
   Target OS ................... $target_os
 
   Have flxmlrpc library ....... $ac_xmlrpc_report
+
+  libgpiod .................... $ac_cv_libgpiod
 
   Static linking .............. $ac_cv_static
   CPU optimizations ........... $ac_cv_opt

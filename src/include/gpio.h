@@ -24,12 +24,24 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Box.H>
+#include <FL/Fl_Input.H>
 #include <FL/Fl_Check_Button.H>
-#include <FL/Fl_Counter.H>
+#include <FL/Fl_Check_Button.H>
 
-extern Fl_Check_Button *btn_enable_gpio[17];
-extern Fl_Check_Button *btn_gpio_on[17];
-extern Fl_Counter      *cnt_gpio_pulse_width;
+//#include <FL/Fl_Counter.H>
+//extern Fl_Check_Button *btn_enable_gpio[17];
+//extern Fl_Check_Button *btn_gpio_on[17];
+//extern Fl_Counter      *cnt_gpio_pulse_width;
+
+extern Fl_Input *gpio_ptt_dev;
+extern Fl_Button *btn_select_gpio_ptt;
+extern Fl_Int_Input *gpio_ptt_line;
+extern Fl_Check_Button *btn_enable_gpio_ptt;
+extern Fl_Input *gpio_cw_dev;
+extern Fl_Button *btn_select_gpio_cw;
+extern Fl_Int_Input *gpio_cw_line;
+extern Fl_Check_Button *btn_enable_gpio_cw;
+
 
 extern Fl_Group *createGPIO(int X, int Y, int W, int H, const char *label);
 

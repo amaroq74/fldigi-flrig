@@ -18,19 +18,27 @@ AC_DEFUN([AC_FLRIG_BUILD_INFO], [
 # CXXFLAGS
   FLRIG_BUILD_CXXFLAGS="$FLTK_CFLAGS -I\$(srcdir) -I\$(srcdir)/include  \
 $X_CFLAGS -pipe -Wall -fexceptions $OPT_CFLAGS $DEBUG_CFLAGS $PTW32_CFLAGS"
+
+#  if test "x$ac_cv_libgpiod" = "xyes"; then
+    FLRIG_BUILD_CXXFLAGS = "$LIBGPIOD_CFLAGS $FLRIG_BUILD_CXXFLAGS"
+#  fi
+
   if test "x$ac_cv_flxmlrpc" != "xyes"; then
     FLRIG_BUILD_CXXFLAGS="-I\$(srcdir)/xmlrpcpp $FLRIG_BUILD_CXXFLAGS"
   fi
+
   if test "x$target_mingw32" = "xyes"; then
       FLRIG_BUILD_CXXFLAGS="-mthreads $FLRIG_BUILD_CXXFLAGS"
   fi
+
   if test "x$target_darwin" = "xyes"; then
       FLRIG_BUILD_CXXFLAGS="$FLRIG_BUILD_CXXFLAGS -fno-stack-check -mmacosx-version-min=10.11"
   fi
+
 # LDFLAGS
   FLRIG_BUILD_LDFLAGS=
 # LDADD
-  FLRIG_BUILD_LDADD="$FLTK_LIBS $X_LIBS $EXTRA_LIBS $PTW32_LIBS $FLXMLRPC_LIBS $LIBUDEV_LIBS"
+  FLRIG_BUILD_LDADD="$FLTK_LIBS $X_LIBS $EXTRA_LIBS $PTW32_LIBS $FLXMLRPC_LIBS $LIBGPIOD_LIBS $LIBUDEV_LIBS"
 
   if test "x$ac_cv_debug" = "xyes"; then
       FLRIG_BUILD_CXXFLAGS="$FLRIG_BUILD_CXXFLAGS -UNDEBUG"

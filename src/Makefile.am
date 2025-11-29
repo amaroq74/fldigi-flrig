@@ -284,6 +284,7 @@ flrig_SOURCES += \
 	graphics/pixmaps.cxx \
 	graphics/icons.cxx \
 	graphics/images.cxx \
+	gpio/gpio_common.cxx \
 	main.cxx
 
 # Additional source files that are distributed
@@ -475,6 +476,7 @@ EXTRA_DIST = \
 	include/yaesu/FT5000.h \
 	include/yaesu/FTdx9000.h \
 	include/combo.h \
+	include/gpio_common.h \
 	images/alc.xbm \
 	images/alc40db.xbm \
 	images/P5.xbm \

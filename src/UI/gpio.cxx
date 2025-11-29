@@ -17,153 +17,148 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // ----------------------------------------------------------------------------
+#include <FL/Fl_Native_File_Chooser.H>
+
 #include "gpio.h"
 #include "gpio_ptt.h"
 
-static const char *gpio_label[] = {
-" 17   00   11",
-" 18   01   12",
-" 27   02   13",
-" 22   03   15",
-" 23   04   16",
-" 24   05   18",
-" 25   06   22",
-"  4   07    7",
-"  5   21   29",
-"  6   22   31",
-" 13   23   33",
-" 19   24   35",
-" 26   25   37",
-" 12   26   32",
-" 16   27   36",
-" 20   28   38",
-" 21   29   40"
-};
+Fl_Input *gpio_ptt_dev=(Fl_Input *)0;
+Fl_Button *btn_select_gpio_ptt=(Fl_Button *)0;
+Fl_Int_Input *gpio_ptt_line=(Fl_Int_Input *)0;
+Fl_Check_Button *btn_enable_gpio_ptt=(Fl_Check_Button *)0;
 
-static void show_pins()
-{
-	printf("%05x | %05x\n", progStatus.enable_gpio, progStatus.gpio_on);
+Fl_Button *btn_select_gpio_cw=(Fl_Button *)0;
+Fl_Input *gpio_cw_dev=(Fl_Input *)0;
+Fl_Int_Input *gpio_cw_line=(Fl_Int_Input *)0;
+Fl_Check_Button *btn_enable_gpio_cw=(Fl_Check_Button *)0;
+
+static void cb_gpio_ptt_dev(Fl_Input* o, void*) {
+  progStatus.gpio_ptt_device = o->value();
+  progStatus.enable_gpio_ptt = false;
+  btn_enable_gpio_ptt->value(0);
 }
 
-void cb_btn_enable_gpio(Fl_Check_Button* btn, void *val)
-{
-	size_t n = (size_t)(val);
-	if (btn->value()) {
-		progStatus.enable_gpio |= (1 << n);
-	} else {
-		progStatus.enable_gpio &= ~(1 << n);
-	}
-	show_pins();
+static void cb_btn_select_gpio_ptt(Fl_Button*, void*) {
+  Fl_Native_File_Chooser fnfc;
+  fnfc.title("Select GPIO PTT device");
+  fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
+  fnfc.filter("GPIO devices\t*gpio*\n");
+  fnfc.directory("/dev");           // default directory to use
+  // Show native chooser
+  switch ( fnfc.show() ) {
+    case -1: break; // ERROR
+    case  1: break; // CANCEL
+    default: {
+      gpio_ptt_dev->value(fnfc.filename());
+      progStatus.enable_gpio_ptt = false;
+      progStatus.gpio_ptt_device = fnfc.filename();
+      btn_enable_gpio_ptt->value(0);
+      break; // FILE CHOSEN
+    }
+  }
 }
 
-static void cb_btn_gpio_on(Fl_Check_Button* btn, void *val)
-{
-	size_t n = (size_t)(val);
-	if (btn->value()) {
-		progStatus.gpio_on |= (1 << n);
-	} else {
-		progStatus.gpio_on &= ~(1 << n);
-	}
-	show_pins();
+static void cb_gpio_ptt_line(Fl_Int_Input* o, void*) {
+  progStatus.gpio_ptt_line = atoi(o->value());
+  progStatus.enable_gpio_ptt = false;
+  btn_enable_gpio_ptt->value(0);
 }
 
-static void cb_cnt_gpio_pulse_width(Fl_Counter* o, void*)
-{
-	progStatus.gpio_pulse_width = (int)o->value();
+static void cb_btn_enable_gpio_ptt(Fl_Check_Button* o, void*) {
+  progStatus.enable_gpio_ptt = o->value();
 }
 
-static void cb_btn_use_gpio(Fl_Check_Button* btn, void *)
-{
-	if (btn->value()) {
-		progStatus.gpio_ptt = true;
-		open_gpio();
-	} else {
-		progStatus.gpio_ptt = false;
-		close_gpio();
-	}
+static void cb_gpio_cw_dev(Fl_Input* o, void*) {
+  progStatus.gpio_cw_device = o->value();
+  progStatus.enable_gpio_cw = false;
+  btn_enable_gpio_cw->value(0);
+}
+
+static void cb_btn_select_gpio_cw(Fl_Button*, void*) {
+  Fl_Native_File_Chooser fnfc;
+  fnfc.title("Select GPIO CW device");
+  fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
+  fnfc.filter("GPIO devices\t*gpio*\n");
+  fnfc.directory("/dev");           // default directory to use
+  // Show native chooser
+  switch ( fnfc.show() ) {
+    case -1: break; // ERROR
+    case  1: break; // CANCEL
+    default: {
+      gpio_cw_dev->value(fnfc.filename());
+      progStatus.enable_gpio_ptt = false;
+      progStatus.gpio_cw_device = fnfc.filename();
+      btn_enable_gpio_cw->value(0);
+      break; // FILE CHOSEN
+    }
+  }
+}
+
+static void cb_gpio_cw_line(Fl_Int_Input* o, void*) {
+  progStatus.gpio_cw_line = atoi(o->value());
+  progStatus.enable_gpio_cw = false;
+  btn_enable_gpio_cw->value(0);
+}
+
+static void cb_btn_enable_gpio_cw(Fl_Check_Button* o, void*) {
+  progStatus.enable_gpio_cw = o->value();
 }
 
 Fl_Group *createGPIO(int X, int Y, int W, int H, const char *label)
 {
+	static char linenbr[20];
+
 	Fl_Group *tab = new Fl_Group(X, Y, W, H, label);
 
-	size_t w = (W - 20)/4;
-	size_t h = 18;
-	size_t hd = (H - 4)/ 11;
-	size_t y = Y + 2 + hd;
-	size_t col1 = X + 20;
-	size_t col2 = col1 + w;
-	size_t col3 = col2 + w;
-	size_t col4 = col3 + w;
+		gpio_ptt_dev = new Fl_Input(X + 35, Y + 40, 200 , 22, gettext("GPIO PTT device"));
+		gpio_ptt_dev->tooltip(gettext("Select PTT device file"));
+		gpio_ptt_dev->callback((Fl_Callback*)cb_gpio_ptt_dev);
+		gpio_ptt_dev->align(Fl_Align(FL_ALIGN_TOP_LEFT));
+		gpio_ptt_dev->value(progStatus.gpio_ptt_device.c_str());
 
-	Fl_Check_Button * btn_use_gpio = new Fl_Check_Button (col2 + w/2, Y + 2, w, h, "Use GPIO PTT");
-	btn_use_gpio->down_box(FL_DOWN_BOX);
-	btn_use_gpio->labelfont(FL_COURIER);
-	btn_use_gpio->labelsize(12);
-	btn_use_gpio->value(progStatus.gpio_ptt);
-	btn_use_gpio->callback((Fl_Callback*)cb_btn_use_gpio);
+		btn_select_gpio_ptt = new Fl_Button(X + 240, Y + 40, 60, 22, gettext("Select"));
+		btn_select_gpio_ptt->callback((Fl_Callback*)cb_btn_select_gpio_ptt);
 
-	Fl_Box* bx1 = new Fl_Box(col1, y, w, h, "  BCM  GPIO Pin ON");
-	bx1->labelfont(FL_COURIER);
-	bx1->labelsize(12);
-	bx1->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
+		gpio_ptt_line = new Fl_Int_Input(X + 35, Y + 90, 90, 22, gettext("On Line"));
+		gpio_ptt_line->tooltip(gettext("Enter GPIO line for PTT"));
+		gpio_ptt_line->type(2);
+		gpio_ptt_line->align(Fl_Align(FL_ALIGN_TOP_LEFT));
+		gpio_ptt_line->callback((Fl_Callback*)cb_gpio_ptt_line);
 
-	Fl_Box* bx3 = new Fl_Box(col3, y, w, h, "  BCM  GPIO Pin ON");
-	bx3->labelfont(FL_COURIER);
-	bx3->labelsize(12);
-	bx3->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
+		snprintf(linenbr, sizeof(linenbr), "%d", progStatus.gpio_ptt_line);
+		gpio_ptt_line->value(linenbr);
 
-	for (size_t n = 0; n < 8; n++) {
-		btn_enable_gpio[n] = new Fl_Check_Button(col1, y + hd * (n + 1), w, h, gpio_label[n]);
-		btn_enable_gpio[n]->tooltip(_("Select pin number"));
-		btn_enable_gpio[n]->down_box(FL_DOWN_BOX);
-		btn_enable_gpio[n]->labelfont(FL_COURIER);
-		btn_enable_gpio[n]->labelsize(12);
-		btn_enable_gpio[n]->callback((Fl_Callback*)cb_btn_enable_gpio, (void *)n);
-		btn_enable_gpio[n]->value((progStatus.enable_gpio >> n)& 0x01);
-	}
+		btn_enable_gpio_ptt = new Fl_Check_Button(X + 240, Y + 90, 90, 22, gettext("Enable PTT"));
+		btn_enable_gpio_ptt->tooltip(gettext("Set device & line, then enable"));
+		btn_enable_gpio_ptt->down_box(FL_DOWN_BOX);
+		btn_enable_gpio_ptt->callback((Fl_Callback*)cb_btn_enable_gpio_ptt);
+		btn_enable_gpio_ptt->value(progStatus.enable_gpio_ptt);
 
-	for (size_t n = 8; n < 17; n++) {
-		btn_enable_gpio[n] = new Fl_Check_Button(col3, y + hd * (n - 7), w, h, gpio_label[n]);
-		btn_enable_gpio[n]->tooltip(_("Select pin number"));
-		btn_enable_gpio[n]->down_box(FL_DOWN_BOX);
-		btn_enable_gpio[n]->labelfont(FL_COURIER);
-		btn_enable_gpio[n]->labelsize(12);
-		btn_enable_gpio[n]->callback((Fl_Callback*)cb_btn_enable_gpio, (void *)n);
-		btn_enable_gpio[n]->value((progStatus.enable_gpio >> n)& 0x01);
-	}
+//----------------------------------------------------------------------
 
-	for (size_t n = 0; n < 8; n++) {
-		btn_gpio_on[n] = new Fl_Check_Button(col2, y + hd * (n + 1), w, h, "");
-		btn_gpio_on[n]->tooltip(_("Select PTT on state"));
-		btn_gpio_on[n]->down_box(FL_DOWN_BOX);
-		btn_gpio_on[n]->labelfont(FL_COURIER);
-		btn_gpio_on[n]->labelsize(12);
-		btn_gpio_on[n]->callback((Fl_Callback*)cb_btn_gpio_on, (void *)n);
-		btn_gpio_on[n]->value((progStatus.gpio_on >> n) & 0x01);
-	}
+		gpio_cw_dev = new Fl_Input(X + 35, Y + 150, 200, 22, gettext("GPIO CW device"));
+		gpio_cw_dev->tooltip(gettext("Select PTT device file"));
+		gpio_cw_dev->callback((Fl_Callback*)cb_gpio_cw_dev);
+		gpio_cw_dev->align(Fl_Align(FL_ALIGN_TOP_LEFT));
+		gpio_cw_dev->value(progStatus.gpio_cw_device.c_str());
 
-	for (size_t n = 8; n < 17; n++) {
-		btn_gpio_on[n] = new Fl_Check_Button(col4, y + hd * (n - 7), w, h, "");
-		btn_gpio_on[n]->tooltip(_("Select PTT on state"));
-		btn_gpio_on[n]->down_box(FL_DOWN_BOX);
-		btn_gpio_on[n]->labelfont(FL_COURIER);
-		btn_gpio_on[n]->labelsize(12);
-		btn_gpio_on[n]->callback((Fl_Callback*)cb_btn_gpio_on, (void *)n);
-		btn_gpio_on[n]->value((progStatus.gpio_on >> n) & 0x01);
-	}
+		btn_select_gpio_cw = new Fl_Button(X + 240, Y + 150, 60, 22, gettext("Select"));
+		btn_select_gpio_cw->callback((Fl_Callback*)cb_btn_select_gpio_cw);
 
-	cnt_gpio_pulse_width = new Fl_Counter(col1, y + hd * 9, 80, 20, "Pulse width (msec)");
-	cnt_gpio_pulse_width->tooltip(_("Set >0 if pulsed PTT used"));
-	cnt_gpio_pulse_width->type(1);
-	cnt_gpio_pulse_width->labelfont(FL_COURIER);
-	cnt_gpio_pulse_width->labelsize(12);
-	cnt_gpio_pulse_width->minimum(0);
-	cnt_gpio_pulse_width->maximum(50);
-	cnt_gpio_pulse_width->step(1);
-	cnt_gpio_pulse_width->callback((Fl_Callback*)cb_cnt_gpio_pulse_width);
-	cnt_gpio_pulse_width->align(Fl_Align(FL_ALIGN_RIGHT));
-	cnt_gpio_pulse_width->value(progStatus.gpio_pulse_width);
+		gpio_cw_line = new Fl_Int_Input(X + 35, Y + 195, 90, 22, gettext("On Line"));
+		gpio_cw_line->tooltip(gettext("Enter GPIO line for CW"));
+		gpio_cw_line->type(2);
+		gpio_cw_line->align(Fl_Align(FL_ALIGN_TOP_LEFT));
+		gpio_cw_line->callback((Fl_Callback*)cb_gpio_cw_line);
+
+		snprintf(linenbr, sizeof(linenbr), "%d", progStatus.gpio_cw_line);
+		gpio_cw_line->value(linenbr);
+
+		btn_enable_gpio_cw = new Fl_Check_Button(X + 240, Y + 195, 90, 22, gettext("Enable GPIO CW"));
+		btn_enable_gpio_cw->tooltip(gettext("Set device & line, then enable"));
+		btn_enable_gpio_cw->down_box(FL_DOWN_BOX);
+		btn_enable_gpio_cw->callback((Fl_Callback*)cb_btn_enable_gpio_cw);
+		btn_enable_gpio_cw->value(progStatus.enable_gpio_cw);
 
 	tab->end();
 

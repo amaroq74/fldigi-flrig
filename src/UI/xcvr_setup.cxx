@@ -80,10 +80,12 @@ Fl_Group *tabPTTGEN = (Fl_Group *)0;
 	Fl_ListBox *lbox_sep_dtrptt = (Fl_ListBox *)0;
 	Fl_Check_Button *btnSepDTRplus = (Fl_Check_Button *)0;
 
+#if USE_LIBGPIOD
 Fl_Group *tabGPIO = (Fl_Group *)0;
 	Fl_Check_Button *btn_enable_gpio[17];
 	Fl_Check_Button *btn_gpio_on[17];
 	Fl_Counter *cnt_gpio_pulse_width;
+#endif
 
 Fl_Group *tabOTHER = (Fl_Group *)0;
 	Fl_ComboBox *selectAuxPort = (Fl_ComboBox *)0;
@@ -2785,7 +2787,9 @@ void cleartabs()
 	tabTCPIP->hide();
 	tabPTTGEN->hide();
 	tabOTHER->hide();
+#if USE_LIBGPIOD
 	tabGPIO->hide();
+#endif
 	tabCMEDIA->hide();
 	tabPOLLING->hide();
 	tabSNDCMD->hide();
@@ -2854,10 +2858,12 @@ Fl_Double_Window* XcvrDialog() {
 	tab_tree->item_labelfgcolor(fl_rgb_color( progStatus.fg_red, progStatus.fg_green, progStatus.fg_blue ));
 
 	tabXCVR     = createXCVR(xtabs, ytree, wtabs, htree, _("Xcvr"));
+	tabPTTGEN   = createPTT(xtabs, ytree, wtabs, htree, _("PTT-Generic"));
 	tabCMEDIA   = createCmediaTab(xtabs, ytree, wtabs, htree, ("PTT-Cmedia"));
 	tabTMATE2   = createTMATE2Tab(xtabs, ytree, wtabs, htree, ("TMATE-2"));
-	tabGPIO     = createGPIO(xtabs, ytree, wtabs, htree, _("PTT-GPIO"));
-	tabPTTGEN   = createPTT(xtabs, ytree, wtabs, htree, _("PTT-Generic"));
+#if USE_LIBGPIOD
+	tabGPIO     = createGPIO(xtabs, ytree, wtabs, htree, _("GPIO PTT & CW"));
+#endif
 	tabTCPIP    = createTCPIP(xtabs, ytree, wtabs, htree, _("TCPIP & TCI"));
 	tabOTHER      = createAUX(xtabs, ytree, wtabs, htree, _("Other"));
 	tabSERVER   = createSERVER(xtabs, ytree, wtabs, htree, _("Server"));
@@ -2874,7 +2880,10 @@ Fl_Double_Window* XcvrDialog() {
 
 	add_tree_item(tabPTTGEN);
 	add_tree_item(tabCMEDIA);
+
+#if USE_LIBGPIOD
 	add_tree_item(tabGPIO);
+#endif
 	add_tree_item(tabTMATE2);
 
 	add_tree_item(tabTCPIP);

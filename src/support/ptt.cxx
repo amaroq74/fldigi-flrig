@@ -35,8 +35,12 @@
 #include "rig.h"
 #include "support.h"
 
-#include "gpio_ptt.h"
+//#include "gpio_ptt.h"
 #include "cmedia.h"
+
+#if USE_LIBGPIOD
+#include "gpio_common.h"
+#endif
 
 // used for transceivers with a single vfo, called only by rigPTT
 static XCVR_STATE fake_vfo;
@@ -60,9 +64,50 @@ static void fake_split(int on)
 	}
 }
 
-// add fake rit to this function and to set_vfoA ??
-
 extern void xmlrpc_ptt(int);
+
+#if USE_LIBGPIOD
+
+int ptt_gpio_num = GPIO_COMMON_UNKNOWN;
+
+void open_gpio_ptt(void)
+{
+	if (!progStatus.enable_gpio_ptt || (progStatus.gpio_ptt_line == -1) || ptt_gpio_num != GPIO_COMMON_UNKNOWN) {
+		return;
+	}
+	LOG_INFO("Opening GPIO line %d on device %s for PTT",
+		progStatus.gpio_ptt_line,
+		progStatus.gpio_ptt_device.c_str());
+	ptt_gpio_num = gpio_common_open_line(progStatus.gpio_ptt_device.c_str(), progStatus.gpio_ptt_line, false);
+	if (ptt_gpio_num == GPIO_COMMON_UNKNOWN) {
+		LOG_ERROR("Failed to open GPIO line");
+	} else {
+		LOG_INFO("GPIO line opened successfully");
+	}
+	return;
+}
+
+void close_gpio_ptt(void)
+{
+	gpio_common_close(ptt_gpio_num);
+	ptt_gpio_num = GPIO_COMMON_UNKNOWN;
+}
+
+void set_gpio_ptt(bool ptt)
+{
+	int ret;
+	if (ptt_gpio_num == GPIO_COMMON_UNKNOWN)
+		open_gpio_ptt();
+	if (ptt_gpio_num != GPIO_COMMON_UNKNOWN) {
+		LOG_INFO("Setting GPIO lines for PTT %s", ptt ? "ON" : "OFF");
+		ret = gpio_common_set(ptt_gpio_num, ptt);
+		if (ret < 0) {
+			LOG_ERROR("Failed to set GPIO line");
+		}
+	}
+}
+
+#endif //USE_LIBGPIOD
 
 void rigPTT(bool on)
 {
@@ -93,7 +138,9 @@ void rigPTT(bool on)
 		(progStatus.sep_dtrptt == PTT_BOTH || progStatus.sep_dtrptt == PTT_SET))		SepSerial->SetPTT(on);
 	else if (SepSerial->IsOpen() && 
 		(progStatus.sep_rtsptt == PTT_BOTH || progStatus.sep_rtsptt == PTT_SET))		SepSerial->SetPTT(on);
-	else if (progStatus.gpio_ptt == PTT_BOTH || progStatus.gpio_ptt == PTT_SET)			set_gpio(on);
+#if USE_LIBGPIOD
+	else if (progStatus.enable_gpio_ptt) set_gpio_ptt(on);
+#endif
 	else if (progStatus.cmedia_ptt == PTT_BOTH || progStatus.cmedia_ptt == PTT_SET)		set_cmedia(on);
 	else
 		LOG_DEBUG("No PTT i/o connected");
@@ -114,8 +161,9 @@ bool ptt_state()
 		(progStatus.sep_dtrptt == PTT_BOTH || progStatus.sep_dtrptt == PTT_GET))		return SepSerial->getPTT();
 	else if (SepSerial->IsOpen() && 
 		(progStatus.sep_rtsptt == PTT_BOTH || progStatus.sep_rtsptt == PTT_GET))		return SepSerial->getPTT();
-
+#if USE_LIBGPIOD
 	else if (progStatus.gpio_ptt == PTT_BOTH || progStatus.gpio_ptt == PTT_GET)			return get_gpio();
+#endif
 	else if (progStatus.cmedia_ptt == PTT_BOTH || progStatus.cmedia_ptt == PTT_GET)		return get_cmedia();
 
 	LOG_DEBUG("No PTT i/o connected");

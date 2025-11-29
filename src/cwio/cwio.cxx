@@ -54,7 +54,7 @@
 #define CWIO_DEBUG
 
 Cserial *cwio_serial = 0;
-Cmorse  *morse = 0;
+cMorse  *morse = 0;
 
 static pthread_t       cwio_pthread;
 static pthread_cond_t  cwio_cond;
@@ -70,7 +70,7 @@ std::string cwio_text;
 //======================================================================
 // sub millisecond accurate sleep function
 // sleep_time in seconds
-
+//======================================================================
 extern double monotonic_seconds();
 
 //======================================================================
@@ -80,6 +80,11 @@ void QMX_send_char(int c);
 void set_QMX_keyer();
 void QMX_sleep(double secs);
 double QMX_now();
+
+//======================================================================
+// GPIO keyer command
+//======================================================================
+void send_gpio_CW(int c);
 
 
 #ifdef CWIO_DEBUG
@@ -153,6 +158,13 @@ double start_at2;
 
 void send_cwkey(char c)
 {
+
+#if USE_LIBGPIOD
+	if ((progStatus.gpio_cw_line != -1) && progStatus.enable_gpio_cw ) {
+		return send_gpio_CW(c);
+	}
+#endif
+
 	if (selrig->name_ == rig_qmx.name_) return QMX_send_char(c);
 
 	start_at2 = monotonic_seconds();
@@ -486,7 +498,7 @@ int start_cwio_thread()
 	if(cwio_thread_running) return 0;
 
 	if (!morse)
-		morse = new Cmorse;
+		morse = new cMorse;
 
 	memset((void *) &cwio_pthread, 0, sizeof(cwio_pthread));
 	memset((void *) &cwio_mutex,   0, sizeof(cwio_mutex));
@@ -769,9 +781,8 @@ void open_cwio_config()
 
 int QMX_wpm = 0;
 bool use_QMX_keyer = false;
-//static std::string QMX_cmd = "KY  ;";
-//static std::string cmd;
-static Cmorse *QMX_morse = 0;
+
+static cMorse *QMX_morse = 0;
 static char lastQMX_char = 0;
 
 void set_QMX_keyer();
@@ -849,7 +860,7 @@ void set_QMX_keyer()
 
 void QMX_send_char(int c)
 {
-	if (QMX_morse == 0) QMX_morse = new Cmorse;
+	if (QMX_morse == 0) QMX_morse = new cMorse;
 
 	if (QMX_wpm != progStatus.cwioWPM)
 		set_QMX_keyer();
@@ -868,7 +879,6 @@ void QMX_send_char(int c)
 	snprintf(cmd, sizeof(cmd), "KY %c;", c);
 	{
 		guard_lock serial(&mutex_serial, "cwio_send");
-//std::cout << cmd << " [" << (int)c << "] tc: " << tc << ", len: " << len << std::endl;
 		sendCommand(cmd);
 	}
 	QMX_sleep(tc * len);
@@ -876,3 +886,150 @@ void QMX_send_char(int c)
 	lastQMX_char = c;
 
 }
+
+//----------------------------------------------------------------------
+// CW output on GPIO pin
+//----------------------------------------------------------------------
+
+#if USE_LIBGPIOD
+
+#include <queue>
+#include <fcntl.h>
+
+#include "gpio_common.h"
+
+static gpio_num_t		cw_gpio_num = GPIO_COMMON_UNKNOWN;
+
+//----------------------------------------------------------------------
+static void set_gpio_pin(bool key)
+{
+	int ret;
+
+	ret = gpio_common_set(cw_gpio_num, key);
+
+	if (ret < 0) {
+		LOG_ERROR("Error setting GPIO");
+	}
+
+}
+
+//----------------------------------------------------------------------
+
+static double CW_gpio_now()
+{
+	static struct timespec tp;
+
+#if HAVE_CLOCK_GETTIME
+	clock_gettime(CLOCK_MONOTONIC, &tp); 
+#elif defined(__WIN32__)
+	DWORD msec = GetTickCount();
+	return 1.0 * msec;
+	tp.tv_sec = msec / 1000;
+	tp.tv_nsec = (msec % 1000) * 1000000;
+#elif defined(__APPLE__)
+	static mach_timebase_info_data_t info = { 0, 0 };
+	if (unlikely(info.denom == 0))
+		mach_timebase_info(&info);
+	uint64_t t = mach_absolute_time() * info.numer / info.denom;
+	tp.tv_sec = t / 1000000000;
+	tp.tv_nsec = t % 1000000000;
+#endif
+	return 1.0 * tp.tv_sec + tp.tv_nsec * 1e-9;
+
+}
+
+static void CW_gpio_bit(int bit, double msecs)
+{
+	static double secs;
+	static struct timespec tv = { 0, 1000000L};
+	static double end1 = 0;
+	static double end2 = 0;
+	static double t1 = 0;
+#ifdef CW_gpio_TTEST
+	static double t2 = 0;
+#endif
+	static double t3 = 0;
+	static double t4 = 0;
+	int loop1 = 0;
+	int loop2 = 0;
+	int n1 = msecs * 1e3;
+
+	secs = msecs * 1e-3;
+
+#ifdef __WIN32__
+	timeBeginPeriod(1);
+#endif
+
+	t1 = CW_gpio_now();
+
+	end2 = t1 + secs - 0.00001;
+
+	set_gpio_pin(bit);
+
+#ifdef CW_gpio_TTEST
+	t2 = t3 = CW_gpio_now();
+#else
+	t3 = CW_gpio_now();
+#endif
+	end1 = end2 - 0.005;
+
+	while (t3 < end1 && (++loop1 < n1)) {
+		nano_sleep(&tv, NULL);
+		t3 = CW_gpio_now();
+	}
+
+	t4 = t3;
+	while (t4 <= end2) {
+		loop2++;
+		t4 = CW_gpio_now();
+	}
+
+#ifdef __WIN32__
+	timeEndPeriod(1);
+#endif
+
+}
+
+void send_gpio_CW(int c)
+{
+	if (!morse) {
+		morse = new cMorse;
+		morse->init();
+	}
+
+	if (c == 0x0d) {
+		return;
+	}
+
+	float tc = 1200.0 / progStatus.cwioWPM;
+	if (tc <= 0) tc = 1;
+
+	if (c == 0x0a) c = ' ';
+
+	if (c == ' ') {
+		CW_gpio_bit(0, 4 * tc);
+		return;
+	}
+
+	std::string code = morse->tx_lookup(c);
+	if (code.empty()) {
+		return;
+	}
+
+	double weight = progStatus.cw_weight;
+
+	for (size_t n = 0; n < code.length(); n++) {
+		if (code[n] == '.') {
+			CW_gpio_bit(1, tc * (1 + weight));
+		} else {
+			CW_gpio_bit(1, 3*tc * (1 + weight));
+		}
+		if (n < code.length() -1) {
+			CW_gpio_bit(0, tc * (1 - weight));
+		} else {
+			CW_gpio_bit(0, 3 * tc - tc * weight);
+		}
+	}
+}
+
+#endif // USE_LIBGPIOD

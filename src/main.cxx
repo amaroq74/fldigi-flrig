@@ -482,7 +482,7 @@ int main (int argc, char *argv[])
 	SepSerial	= new Cserial;
 	AuxSerial	= new Cserial;
 	cwio_serial	= new Cserial();
-	morse		= new Cmorse();
+	morse		= new cMorse();
 	FSK_serial	= new Cserial();
 
 	try {

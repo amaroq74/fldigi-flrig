@@ -502,6 +502,15 @@ struct status {
 	int		gpio_on;
 	int		gpio_pulse_width;
 
+// gpio deamon
+	std::string		gpio_ptt_device;
+	int		gpio_ptt_line;
+	int		enable_gpio_ptt;
+
+	std::string		gpio_cw_device;
+	int		gpio_cw_line;
+	int		enable_gpio_cw;
+
 // KXPA 100 presence
 //	int		kxpa;
 

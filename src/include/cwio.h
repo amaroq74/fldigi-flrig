@@ -45,7 +45,7 @@ extern std::string cwio_text;
 extern int cwio_process;
 
 extern Cserial *cwio_serial;
-extern Cmorse  *morse;
+extern cMorse  *morse;
 
 extern void send_cwkey(int c);
 extern int  open_cwkey();

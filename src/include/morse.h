@@ -33,14 +33,14 @@ struct CWstruct {
 	std::string		rpr;		// Dot-dash code representation
 };
 
-class Cmorse {
+class cMorse {
 private:
 	static CWstruct	cw_table[];
 	std::string utf8;
 
 public:
-	Cmorse() {}
-	~Cmorse() {}
+	cMorse() {}
+	~cMorse() {}
 
 	std::string tx_lookup(int);
 	int tx_length(int);

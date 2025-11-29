@@ -39,7 +39,7 @@
  * The user can specify the character which substitutes for the prosign
  */
 
-CWstruct Cmorse::cw_table[] = {
+CWstruct cMorse::cw_table[] = {
 // Prosigns
 	{ "=", "-...-" },	// <BT>
 	{ "~", ".-.-" },	// <AA>
@@ -168,7 +168,7 @@ CWstruct Cmorse::cw_table[] = {
 
 //----------------------------------------------------------------------
 
-std::string Cmorse::tx_lookup(int c)
+std::string cMorse::tx_lookup(int c)
 {
 	c &= 0xFF;
 	utf8 += c;
@@ -188,7 +188,7 @@ std::string Cmorse::tx_lookup(int c)
 
 }
 
-int Cmorse::tx_length(int c)
+int cMorse::tx_length(int c)
 {
 	if (c == ' ') return 4;
 	std::string ms = tx_lookup(c);
@@ -201,7 +201,7 @@ int Cmorse::tx_length(int c)
 	return len;
 }
 
-void Cmorse::init()
+void cMorse::init()
 {
 	cw_table[0].chr[0] = progStatus.BT[0];
 	cw_table[1].chr[0] = progStatus.AA[0];
