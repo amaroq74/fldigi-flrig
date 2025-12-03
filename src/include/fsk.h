@@ -58,6 +58,8 @@ class FSK
 #define FSK_MARK  0
 #define FSK_SPACE 1
 
+enum { RECV, SEND };
+
 public:
 	FSK();
 	~FSK();

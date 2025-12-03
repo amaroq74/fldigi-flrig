@@ -1,10 +1,9 @@
-// =====================================================================
-// pixmaps.h
 // ----------------------------------------------------------------------------
-// Copyright (C) 2014
-//              David Freese, W1HKJ
 //
-// This file is part of flrig.
+// Copyright (C) 2008 Stelios Bounanos, M0GLD
+//               2025 David Freese, W1HKJ
+//
+// This file is part of flrig
 //
 // flrig is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -73,6 +72,7 @@ extern const char *audio_card_icon[];
 extern const char *help_about_icon[];
 extern const char *insert_link_icon[];
 extern const char *close_icon[];
+extern const char *apply_icon[];
 extern const char *enter_key_icon[];
 extern const char *dialog_question_48_icon[];
 extern const char *clear_sq_icon[];
@@ -83,10 +83,12 @@ extern const char *rx2_icon[];
 extern const char *tx2_icon[];
 extern const char *rx_icon[];
 extern const char *tx_icon[];
-extern const char *fldigi_icon[];
+extern const char *flrig_icon[];
 extern const char *flarq_icon[];
 extern const char *waterfall_icon[];
 extern const char *dice_icon[];
 extern const char *pskr_icon[];
+extern const char *tango_view_refresh[];
+
 
 #endif // PIXMAPS_H_

@@ -4,15 +4,14 @@
 #define cwioUI_h
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
-#include <FL/Fl_Text_Buffer.H>
 extern Fl_Double_Window *cwlog_viewer;
-extern Fl_Text_Buffer *cw_sent_buffer;
 #include <FL/Fl_Double_Window.H>
 #include "status.h"
 #include "cwio.h"
 #include "ValueSlider.h"
-#include "flinput2.h"
-extern Fl_Input2 *txt_to_send;
+#include "FTextView.h"
+extern FTextView *cw_sent_text;
+extern FTextEdit *txt_to_send;
 #include <FL/Fl_Group.H>
 #include "flslider2.h"
 extern Fl_Value_Slider2 *sldr_cwioWPM;
@@ -24,11 +23,10 @@ extern Fl_Light_Button *btn_cwioKEY;
 extern Fl_Light_Button *btn_cwioSEND;
 extern Fl_Button *btn_msg[12];
 extern Fl_Button *btn_view_cwlog;
-#include <FL/Fl_Text_Display.H>
-extern Fl_Text_Display *cw_sent_text;
 Fl_Double_Window* new_cwio_dialog();
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Box.H>
+#include "flinput2.h"
 extern Fl_Input2 *edit_label[12];
 extern Fl_Input2 *edit_msg[12];
 #include "combo.h"

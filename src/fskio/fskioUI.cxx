@@ -12,9 +12,11 @@
 Fl_Text_Buffer *FSK_sent_buffer;
 Fl_Double_Window *fsklog_viewer;
 
-Fl_Input2 *FSK_txt_to_send=(Fl_Input2 *)0;
+FTextView *FSK_sent_text=(FTextView *)0;
 
-static void cb_FSK_txt_to_send(Fl_Input2*, void*) {
+FTextEdit *FSK_txt_to_send=(FTextEdit *)0;
+
+static void cb_FSK_txt_to_send(FTextEdit*, void*) {
   FSK_control_function_keys();
 }
 
@@ -89,93 +91,112 @@ static void cb_FSK_btn_msgb(Fl_Button*, void*) {
   FSK_exec_msg(11);
 }
 
-Fl_Text_Display *FSK_sent_text=(Fl_Text_Display *)0;
-
 Fl_Double_Window* fskio_window() {
   Fl_Double_Window* w;
-  { Fl_Double_Window* o = new Fl_Double_Window(670, 210, gettext("FSK keying"));
+  { Fl_Double_Window* o = new Fl_Double_Window(672, 213, gettext("FSK keying"));
     w = o; (void)w;
-    { FSK_txt_to_send = new Fl_Input2(2, 104, 666, 40);
-      FSK_txt_to_send->type(4);
+    { FTextView* o = FSK_sent_text = new FTextView(1, 2, 667, 90);
+      FSK_sent_text->box(FL_DOWN_FRAME);
+      FSK_sent_text->color((Fl_Color)20);
+      FSK_sent_text->selection_color(FL_SELECTION_COLOR);
+      FSK_sent_text->labeltype(FL_NORMAL_LABEL);
+      FSK_sent_text->labelfont(0);
+      FSK_sent_text->labelsize(14);
+      FSK_sent_text->labelcolor(FL_FOREGROUND_COLOR);
+      FSK_sent_text->textfont(13);
+      FSK_sent_text->textsize(16);
+      FSK_sent_text->align(Fl_Align(FL_ALIGN_TOP|FL_ALIGN_INSIDE));
+      FSK_sent_text->when(FL_WHEN_RELEASE);
+      Fl_Group::current()->resizable(FSK_sent_text);
+      o->color(progStatus.fsk_sent_bkgnd_color);
+      o->textfont(progStatus.fsk_sent_text_font); o->textsize(progStatus.fsk_sent_text_size);
+      o->setFontColor(progStatus.fsk_sent_font_color);
+    } // FTextView* FSK_sent_text
+    { FTextEdit* o = FSK_txt_to_send = new FTextEdit(1, 94, 668, 50);
       FSK_txt_to_send->box(FL_DOWN_BOX);
-      FSK_txt_to_send->color(FL_BACKGROUND2_COLOR);
+      FSK_txt_to_send->color(FL_SELECTION_COLOR);
       FSK_txt_to_send->selection_color(FL_SELECTION_COLOR);
       FSK_txt_to_send->labeltype(FL_NORMAL_LABEL);
       FSK_txt_to_send->labelfont(0);
       FSK_txt_to_send->labelsize(14);
       FSK_txt_to_send->labelcolor(FL_FOREGROUND_COLOR);
+      FSK_txt_to_send->textfont(13);
+      FSK_txt_to_send->textsize(16);
       FSK_txt_to_send->callback((Fl_Callback*)cb_FSK_txt_to_send);
       FSK_txt_to_send->align(Fl_Align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE));
       FSK_txt_to_send->when(FL_WHEN_CHANGED);
-    } // Fl_Input2* FSK_txt_to_send
-    { Fl_Group* o = new Fl_Group(0, 147, 670, 60);
-      { btn_fskio_config = new Fl_Button(390, 148, 60, 22, gettext("Config"));
+      o->color(progStatus.fsk_txt_to_send_bkgnd_color);
+      o->textfont(progStatus.fsk_txt_to_send_font); o->textsize(progStatus.fsk_txt_to_send_size);
+      o->setFontColor(progStatus.fsk_txt_to_send_font_color);
+    } // FTextEdit* FSK_txt_to_send
+    { Fl_Group* o = new Fl_Group(0, 146, 667, 62);
+      { btn_fskio_config = new Fl_Button(374, 149, 60, 22, gettext("Config"));
         btn_fskio_config->tooltip(gettext("Open FSK configuration dialog"));
         btn_fskio_config->callback((Fl_Callback*)cb_btn_fskio_config);
       } // Fl_Button* btn_fskio_config
-      { btn_fskio_clear = new Fl_Button(473, 148, 60, 22, gettext("Clear"));
+      { btn_fskio_clear = new Fl_Button(473, 149, 60, 22, gettext("Clear"));
         btn_fskio_clear->tooltip(gettext("Clear PENDING text\nShift - Clear SENT text"));
         btn_fskio_clear->callback((Fl_Callback*)cb_btn_fskio_clear);
       } // Fl_Button* btn_fskio_clear
-      { btn_fskioSEND = new Fl_Light_Button(557, 148, 105, 22, gettext("Xmt / Rcv"));
+      { btn_fskioSEND = new Fl_Light_Button(557, 149, 105, 22, gettext("Xmt / Rcv"));
         btn_fskioSEND->tooltip(gettext("Send / Pause sending characters"));
         btn_fskioSEND->callback((Fl_Callback*)cb_btn_fskioSEND);
       } // Fl_Light_Button* btn_fskioSEND
-      { Fl_Group* o = new Fl_Group(2, 174, 220, 30);
+      { Fl_Group* o = new Fl_Group(2, 173, 220, 35);
         o->box(FL_ENGRAVED_BOX);
-        { FSK_btn_msg[0] = new Fl_Button(5, 178, 50, 22, gettext("F 1"));
+        { FSK_btn_msg[0] = new Fl_Button(5, 179, 50, 22, gettext("F 1"));
           FSK_btn_msg[0]->tooltip(gettext("Action - Function Key Left click\nEdit - Control left click"));
           FSK_btn_msg[0]->callback((Fl_Callback*)cb_FSK_btn_msg);
         } // Fl_Button* FSK_btn_msg[0]
-        { FSK_btn_msg[1] = new Fl_Button(59, 178, 50, 22, gettext("F 2"));
+        { FSK_btn_msg[1] = new Fl_Button(59, 179, 50, 22, gettext("F 2"));
           FSK_btn_msg[1]->tooltip(gettext("Action - Function Key Left click\nEdit - Control left click"));
           FSK_btn_msg[1]->callback((Fl_Callback*)cb_FSK_btn_msg1);
         } // Fl_Button* FSK_btn_msg[1]
-        { FSK_btn_msg[2] = new Fl_Button(113, 178, 50, 22, gettext("F 3"));
+        { FSK_btn_msg[2] = new Fl_Button(113, 179, 50, 22, gettext("F 3"));
           FSK_btn_msg[2]->tooltip(gettext("Action - Function Key Left click\nEdit - Control left click"));
           FSK_btn_msg[2]->callback((Fl_Callback*)cb_FSK_btn_msg2);
         } // Fl_Button* FSK_btn_msg[2]
-        { FSK_btn_msg[3] = new Fl_Button(168, 178, 50, 22, gettext("F 4"));
+        { FSK_btn_msg[3] = new Fl_Button(168, 179, 50, 22, gettext("F 4"));
           FSK_btn_msg[3]->tooltip(gettext("Action - Function Key Left click\nEdit - Control left click"));
           FSK_btn_msg[3]->callback((Fl_Callback*)cb_FSK_btn_msg3);
         } // Fl_Button* FSK_btn_msg[3]
         o->end();
       } // Fl_Group* o
-      { Fl_Group* o = new Fl_Group(225, 174, 220, 30);
+      { Fl_Group* o = new Fl_Group(225, 173, 220, 35);
         o->box(FL_ENGRAVED_BOX);
-        { FSK_btn_msg[4] = new Fl_Button(229, 178, 50, 22, gettext("F 5"));
+        { FSK_btn_msg[4] = new Fl_Button(229, 179, 50, 22, gettext("F 5"));
           FSK_btn_msg[4]->tooltip(gettext("Action - Function Key Left click\nEdit - Control left click"));
           FSK_btn_msg[4]->callback((Fl_Callback*)cb_FSK_btn_msg4);
         } // Fl_Button* FSK_btn_msg[4]
-        { FSK_btn_msg[5] = new Fl_Button(283, 178, 50, 22, gettext("F 6"));
+        { FSK_btn_msg[5] = new Fl_Button(283, 179, 50, 22, gettext("F 6"));
           FSK_btn_msg[5]->tooltip(gettext("Action - Function Key Left click\nEdit - Control left click"));
           FSK_btn_msg[5]->callback((Fl_Callback*)cb_FSK_btn_msg5);
         } // Fl_Button* FSK_btn_msg[5]
-        { FSK_btn_msg[6] = new Fl_Button(337, 178, 50, 22, gettext("F 7"));
+        { FSK_btn_msg[6] = new Fl_Button(337, 179, 50, 22, gettext("F 7"));
           FSK_btn_msg[6]->tooltip(gettext("Action - Function Key Left click\nEdit - Control left click"));
           FSK_btn_msg[6]->callback((Fl_Callback*)cb_FSK_btn_msg6);
         } // Fl_Button* FSK_btn_msg[6]
-        { FSK_btn_msg[7] = new Fl_Button(391, 178, 50, 22, gettext("F 8"));
+        { FSK_btn_msg[7] = new Fl_Button(391, 179, 50, 22, gettext("F 8"));
           FSK_btn_msg[7]->tooltip(gettext("Action - Function Key Left click\nEdit - Control left click"));
           FSK_btn_msg[7]->callback((Fl_Callback*)cb_FSK_btn_msg7);
         } // Fl_Button* FSK_btn_msg[7]
         o->end();
       } // Fl_Group* o
-      { Fl_Group* o = new Fl_Group(448, 174, 220, 30);
+      { Fl_Group* o = new Fl_Group(448, 173, 219, 35);
         o->box(FL_ENGRAVED_BOX);
-        { FSK_btn_msg[8] = new Fl_Button(451, 178, 50, 22, gettext("F 9"));
+        { FSK_btn_msg[8] = new Fl_Button(451, 179, 50, 22, gettext("F 9"));
           FSK_btn_msg[8]->tooltip(gettext("Action - Function Key Left click\nEdit - Control left click"));
           FSK_btn_msg[8]->callback((Fl_Callback*)cb_FSK_btn_msg8);
         } // Fl_Button* FSK_btn_msg[8]
-        { FSK_btn_msg[9] = new Fl_Button(505, 178, 50, 22, gettext("F 10"));
+        { FSK_btn_msg[9] = new Fl_Button(505, 179, 50, 22, gettext("F 10"));
           FSK_btn_msg[9]->tooltip(gettext("Action - Function Key Left click\nEdit - Control left click"));
           FSK_btn_msg[9]->callback((Fl_Callback*)cb_FSK_btn_msg9);
         } // Fl_Button* FSK_btn_msg[9]
-        { FSK_btn_msg[10] = new Fl_Button(559, 178, 50, 22, gettext("F 11"));
+        { FSK_btn_msg[10] = new Fl_Button(559, 179, 50, 22, gettext("F 11"));
           FSK_btn_msg[10]->tooltip(gettext("Action - Function Key Left click\nEdit - Control left click"));
           FSK_btn_msg[10]->callback((Fl_Callback*)cb_FSK_btn_msga);
         } // Fl_Button* FSK_btn_msg[10]
-        { FSK_btn_msg[11] = new Fl_Button(614, 178, 50, 22, gettext("F 12"));
+        { FSK_btn_msg[11] = new Fl_Button(614, 179, 50, 22, gettext("F 12"));
           FSK_btn_msg[11]->tooltip(gettext("Action - Function Key Left click\nEdit - Control left click"));
           FSK_btn_msg[11]->callback((Fl_Callback*)cb_FSK_btn_msgb);
         } // Fl_Button* FSK_btn_msg[11]
@@ -183,12 +204,6 @@ Fl_Double_Window* fskio_window() {
       } // Fl_Group* o
       o->end();
     } // Fl_Group* o
-    { Fl_Text_Display* o = FSK_sent_text = new Fl_Text_Display(2, 2, 666, 100);
-      FSK_sent_text->color((Fl_Color)20);
-      Fl_Group::current()->resizable(FSK_sent_text);
-      FSK_sent_buffer = new Fl_Text_Buffer();
-      o->buffer(FSK_sent_buffer);
-    } // Fl_Text_Display* FSK_sent_text
     o->end();
   } // Fl_Double_Window* o
   return w;

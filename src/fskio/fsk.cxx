@@ -93,6 +93,8 @@ pthread_mutex_t fskio_stop_mutex = PTHREAD_MUTEX_INITIALIZER;
 Cserial *FSK_serial = (Cserial *)0;
 FSK *fsk_instance = (FSK *)0;
 
+int FSK_process = 0; // RX state
+
 static std::string FSK_new_text;
 
 FSK::FSK()
@@ -150,10 +152,13 @@ void FSK::fsk_shares_port(Cserial *shared_device)
 //	fsk_serial = shared_device;
 }
 
+bool to_send_updated = false;
 void update_fsk_txt_to_send(void *v)
 {
 	FSK *fsk = (FSK *)v;
-	FSK_txt_to_send->value(fsk->str_buff.c_str());
+	FSK_txt_to_send->buffer()->text(fsk->str_buff.c_str());
+	FSK_txt_to_send->redraw();
+	to_send_updated = true;
 }
 
 void update_fsk_sent_text(void *loc)
@@ -161,6 +166,7 @@ void update_fsk_sent_text(void *loc)
 	char ch[2];
 	ch[1] = 0;
 	ch[0] = *(char *)loc;
+	if (ch[0] == ']') ch[0] = '\n';
 	FSK_sent_text->insert( ch );
 	FSK_sent_text->redraw();
 }
@@ -307,16 +313,12 @@ void FSK::send_baudot(int ch)
 
 void FSK::start_xmt()
 {
-	str_buff.erase(0,1);
-	Fl::awake(update_fsk_txt_to_send, this);
-	Fl::awake(btn_fskioSEND_ON, this);
 	FSK_send_text(true);
 	idles = progStatus.fsk_idles;
 }
 
 void FSK::end_xmt()
 {
-	send_char(' ');
 	str_buff.erase(0,1);
 	Fl::awake(update_fsk_txt_to_send, this);
 	Fl::awake(btn_fskioSEND_OFF, this);
@@ -340,51 +342,71 @@ void FSK::send_char(unsigned char chr)
 
 void FSK::loop_xmt()
 {
-	if ( selrig->modes_.size() == 0) {
-		MilliSleep(50);
-		return;
-	}
-	if ( selrig->modes_.at(vfo->imode).find("RTTY") == std::string::npos) {
+	static char c = 0;
+
+	if ( (selrig->modes_.size() == 0) ||
+		 ( selrig->modes_.at(vfo->imode).find("RTTY") == std::string::npos) ) {
 		MilliSleep(50);
 		return;
 	}
 
-	if (xmting) {
-		MilliSleep(5);
-		return;
+	{
+		guard_lock lck(&fskio_text_mutex);
+
+		str_buff = FSK_txt_to_send->buffer()->text();
+
+		if (!FSK_new_text.empty()) {
+			str_buff.append(FSK_new_text);
+			FSK_new_text.clear();
+		}
 	}
 
-	if (!FSK_new_text.empty()) {
-		str_buff.append(FSK_new_text);
-		FSK_new_text.clear();
-	}
-	if (idles) {
-		send_baudot(LTRS);
-		if (idles) idles--;
-		return;
-	}
-	if (str_buff.empty()) {
-		send_baudot(LTRS);
-		return;
-	}
 	if (str_buff[0] == '[') {
 		start_xmt();
-		return;
+		if (idles)
+			while (idles--) send_baudot(LTRS);
+		guard_lock lck(&fskio_text_mutex);
+		str_buff.erase(0,1);
+		Fl::awake(update_fsk_txt_to_send, this);
+		Fl::awake(btn_fskioSEND_ON, this);
 	}
-	if (str_buff[0] == ']') {
-		end_xmt();
-		return;
+
+	while (FSK_process == SEND) {
+		{
+			guard_lock lck(&fskio_text_mutex);
+			if (!FSK_new_text.empty()) {
+				str_buff.append(FSK_new_text);
+				FSK_new_text.clear();
+			}
+			if (str_buff.empty()) {
+				send_baudot(LTRS);
+				continue;
+			}
+		}
+
+		c = str_buff[0];
+
+		if (c == ']') {
+			end_xmt();
+			return;
+		}
+
+		if (c == '\n') {
+			send_char('\r');
+			send_char('\n');
+		} else
+			send_char(c);
+		Fl::awake(update_fsk_sent_text, &c);
+		{
+			guard_lock lck(&fskio_text_mutex);
+			str_buff.erase(0,1);
+		}
+		to_send_updated = false;
+		Fl::awake(update_fsk_txt_to_send, this);
+		while(!to_send_updated) MilliSleep(1);
+
+		str_buff = FSK_txt_to_send->buffer()->text();
 	}
-	unsigned char c = str_buff[0];
-	if (c == '\n') {
-		send_char('\r');
-		send_char('\n');
-	} else
-		send_char(c);
-	str_buff.erase(0,1);
-	Fl::awake(update_fsk_txt_to_send, this);
-	Fl::awake(update_fsk_sent_text, &c);
-	return;
 }
 
 void *fsk_loop(void *data)
@@ -396,6 +418,7 @@ void *fsk_loop(void *data)
 			guard_lock tlock (&fsk_mutex);
 			if (fsk->fsk_loop_terminate) goto _exit;
 		}
+		MilliSleep(50);
 	}
 _exit:
 	return NULL;
@@ -446,11 +469,8 @@ void FSK_stop_thread() {
 
 void FSK_add(std::string txt)
 {
-	guard_lock lck(&fskio_text_mutex);
 	FSK_new_text.append(txt);
 }
-
-int FSK_process = 0; // RX state
 
 void FSK_send_text(bool state) // state == 1 (xmt), 0 (rcv)
 {
@@ -463,13 +483,13 @@ void FSK_clear_text()
 {
 	guard_lock lck(&fskio_text_mutex);
 	if (fsk_instance) fsk_instance->str_buff.clear();
-	FSK_txt_to_send->value("");
+	FSK_txt_to_send->clear();
 	FSK_txt_to_send->redraw();
 }
 
 void FSK_clear_sent_text()
 {
-	FSK_sent_buffer->text("");
+	FSK_sent_text->clear();
 	FSK_sent_text->redraw();
 }
 
@@ -538,7 +558,7 @@ void FSK_control_function_keys()
 			return;
 		}
 		if (key == 'c') {
-			FSK_txt_to_send->value("");
+			FSK_txt_to_send->clear();
 			return;
 		}
 	}

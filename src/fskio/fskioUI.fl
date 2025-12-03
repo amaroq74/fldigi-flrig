@@ -35,23 +35,34 @@ Function {fskio_window()} {open
 } {
   Fl_Window {} {
     label {FSK keying} open
-    xywh {712 119 670 210} type Double resizable
+    xywh {1189 111 672 213} type Double resizable
     code0 {\#include "status.h"}
     code1 {\#include "fsk.h"}
     code2 {\#include "ValueSlider.h"} visible
   } {
+    Fl_Text_Display FSK_sent_text {selected
+      xywh {1 2 667 90} color 20 align 17 textfont 13 textsize 16 resizable
+      code0 {\#include "FTextView.h"}
+      code1 {o->color(progStatus.fsk_sent_bkgnd_color);}
+      code2 {o->textfont(progStatus.fsk_sent_text_font); o->textsize(progStatus.fsk_sent_text_size);}
+      code3 {o->setFontColor(progStatus.fsk_sent_font_color);}
+      class FTextView
+    }
     Fl_Input FSK_txt_to_send {
+      xywh {1 94 668 50} color 15 align 16 when 1 textfont 13 textsize 16
+      code0 {o->color(progStatus.fsk_txt_to_send_bkgnd_color);}
+      code1 {o->textfont(progStatus.fsk_txt_to_send_font); o->textsize(progStatus.fsk_txt_to_send_size);}
+      code2 {o->setFontColor(progStatus.fsk_txt_to_send_font_color);}
       callback {FSK_control_function_keys();}
-      xywh {2 104 666 40} type Multiline align 16 when 1
-      class Fl_Input2
+      class FTextEdit
     }
     Fl_Group {} {open
-      xywh {0 147 670 60}
+      xywh {0 146 667 62}
     } {
       Fl_Button btn_fskio_config {
         label Config
         callback {FSK_open_config();}
-        tooltip {Open FSK configuration dialog} xywh {390 148 60 22}
+        tooltip {Open FSK configuration dialog} xywh {374 149 60 22}
       }
       Fl_Button btn_fskio_clear {
         label Clear
@@ -60,102 +71,97 @@ Function {fskio_window()} {open
 else
   FSK_clear_text();}
         tooltip {Clear PENDING text
-Shift - Clear SENT text} xywh {473 148 60 22}
+Shift - Clear SENT text} xywh {473 149 60 22}
       }
       Fl_Light_Button btn_fskioSEND {
         label {Xmt / Rcv}
         callback {FSK_send_text(o->value());}
-        tooltip {Send / Pause sending characters} xywh {557 148 105 22}
+        tooltip {Send / Pause sending characters} xywh {557 149 105 22}
       }
       Fl_Group {} {open
-        xywh {2 174 220 30} box ENGRAVED_BOX
+        xywh {2 173 220 35} box ENGRAVED_BOX
       } {
         Fl_Button {FSK_btn_msg[0]} {
           label {F 1}
           callback {FSK_exec_msg(0);}
           tooltip {Action - Function Key Left click
-Edit - Control left click} xywh {5 178 50 22}
+Edit - Control left click} xywh {5 179 50 22}
         }
         Fl_Button {FSK_btn_msg[1]} {
           label {F 2}
           callback {FSK_exec_msg(1);}
           tooltip {Action - Function Key Left click
-Edit - Control left click} xywh {59 178 50 22}
+Edit - Control left click} xywh {59 179 50 22}
         }
         Fl_Button {FSK_btn_msg[2]} {
           label {F 3}
           callback {FSK_exec_msg(2);}
           tooltip {Action - Function Key Left click
-Edit - Control left click} xywh {113 178 50 22}
+Edit - Control left click} xywh {113 179 50 22}
         }
         Fl_Button {FSK_btn_msg[3]} {
           label {F 4}
           callback {FSK_exec_msg(3);}
           tooltip {Action - Function Key Left click
-Edit - Control left click} xywh {168 178 50 22}
+Edit - Control left click} xywh {168 179 50 22}
         }
       }
       Fl_Group {} {open
-        xywh {225 174 220 30} box ENGRAVED_BOX
+        xywh {225 173 220 35} box ENGRAVED_BOX
       } {
         Fl_Button {FSK_btn_msg[4]} {
           label {F 5}
           callback {FSK_exec_msg(4);}
           tooltip {Action - Function Key Left click
-Edit - Control left click} xywh {229 178 50 22}
+Edit - Control left click} xywh {229 179 50 22}
         }
         Fl_Button {FSK_btn_msg[5]} {
           label {F 6}
           callback {FSK_exec_msg(5);}
           tooltip {Action - Function Key Left click
-Edit - Control left click} xywh {283 178 50 22}
+Edit - Control left click} xywh {283 179 50 22}
         }
         Fl_Button {FSK_btn_msg[6]} {
           label {F 7}
           callback {FSK_exec_msg(6);}
           tooltip {Action - Function Key Left click
-Edit - Control left click} xywh {337 178 50 22}
+Edit - Control left click} xywh {337 179 50 22}
         }
         Fl_Button {FSK_btn_msg[7]} {
           label {F 8}
           callback {FSK_exec_msg(7);}
           tooltip {Action - Function Key Left click
-Edit - Control left click} xywh {391 178 50 22}
+Edit - Control left click} xywh {391 179 50 22}
         }
       }
       Fl_Group {} {open
-        xywh {448 174 220 30} box ENGRAVED_BOX
+        xywh {448 173 219 35} box ENGRAVED_BOX
       } {
         Fl_Button {FSK_btn_msg[8]} {
           label {F 9}
           callback {FSK_exec_msg(8);}
           tooltip {Action - Function Key Left click
-Edit - Control left click} xywh {451 178 50 22}
+Edit - Control left click} xywh {451 179 50 22}
         }
         Fl_Button {FSK_btn_msg[9]} {
           label {F 10}
           callback {FSK_exec_msg(9);}
           tooltip {Action - Function Key Left click
-Edit - Control left click} xywh {505 178 50 22}
+Edit - Control left click} xywh {505 179 50 22}
         }
         Fl_Button {FSK_btn_msg[10]} {
           label {F 11}
           callback {FSK_exec_msg(10);}
           tooltip {Action - Function Key Left click
-Edit - Control left click} xywh {559 178 50 22}
+Edit - Control left click} xywh {559 179 50 22}
         }
         Fl_Button {FSK_btn_msg[11]} {
           label {F 12}
           callback {FSK_exec_msg(11);}
           tooltip {Action - Function Key Left click
-Edit - Control left click} xywh {614 178 50 22}
+Edit - Control left click} xywh {614 179 50 22}
         }
       }
-    }
-    Fl_Text_Display FSK_sent_text {selected
-      xywh {2 2 666 100} color 20 resizable
-      code0 {FSK_sent_buffer = new Fl_Text_Buffer();}
-      code1 {o->buffer(FSK_sent_buffer);}
     }
   }
 }

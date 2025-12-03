@@ -302,7 +302,8 @@ static std::string snd;
 
 void update_txt_to_send(void *)
 {
-	txt_to_send->value(snd.c_str());
+	txt_to_send->clear();
+	txt_to_send->buffer()->text(snd.c_str());
 	txt_to_send->redraw();
 }
 
@@ -311,7 +312,7 @@ void update_sent_text(void *loc)
 	char ch[2];
 	ch[1] = 0;
 	ch[0] = *(char *)loc;
-	if (ch[0] == ']') return;
+	if (ch[0] == ']') ch[0] = '\n';
 	cw_sent_text->insert( ch );
 	cw_sent_text->redraw();
 }
@@ -332,7 +333,7 @@ void sending_text()
 	}
 	while (cwio_process == SEND) {
 		c = 0;
-		snd = txt_to_send->value();
+		snd = txt_to_send->buffer()->text();
 		{
 			guard_lock lck(&cwio_text_mutex);
 			if (!snd.empty()) {
@@ -347,9 +348,11 @@ void sending_text()
 				}
 			}
 		}
-		if (c == ' ' || !(morse->tx_lookup(c)).empty()) {
+		if (c == ' ' || c == '\n')
+			send_cwkey(' ');
+		else if (!(morse->tx_lookup(c)).empty())
 			send_cwkey(c);
-		} else if (c == ']') {
+		else if (c == ']') {
 			cwio_process = END;
 			snd.clear();
 			Fl::awake(update_txt_to_send);
@@ -380,7 +383,7 @@ void do_calibration()
 	for (int i = 0; i < progStatus.cwioWPM; i++)
 		teststr.append(paris);
 
-	txt_to_send->value();
+	txt_to_send->buffer()->text();
 
 	start_time = monotonic_seconds();
 	for (size_t n = 0; n < teststr.length(); n++) {
@@ -575,7 +578,7 @@ void stop_cwio_thread()
 
 }
 
-void add_cwio(std::string txt)
+void add_cwio_msg(std::string txt)
 {
 	if (!cwio_thread_running) return;
 
@@ -622,25 +625,28 @@ void add_cwio(std::string txt)
 				cw_log_nbr->value(progStatus.cw_log_nbr);
 		}
 	}
-	{
-		guard_lock lck(&cwio_text_mutex);
-		new_text = txt_to_send->value();
-		new_text.append(txt);
+	add_cwio(txt);
+}
 
-		size_t pos = std::string::npos;
-		if ((pos = new_text.find('[')) != std::string::npos) {
-			while (pos != std::string::npos) {
-				new_text.erase(pos,1);
-				pos = new_text.find('[');
-			}
-			btn_cwioSEND->value(1);
-			send_text(true);
+void add_cwio(std::string txt)
+{
+	guard_lock lck(&cwio_text_mutex);
+	new_text = txt_to_send->buffer()->text();
+	new_text.append(txt);
+
+	size_t pos = std::string::npos;
+	if ((pos = new_text.find('[')) != std::string::npos) {
+		while (pos != std::string::npos) {
+			new_text.erase(pos,1);
+			pos = new_text.find('[');
 		}
-		if (new_text[0] == ']') send_text(true);
-		txt_to_send->value(new_text.c_str());
-		txt_to_send->redraw();
+		btn_cwioSEND->value(1);
+		send_text(true);
 	}
-
+	if (new_text.empty()) return;
+	txt_to_send->buffer()->text(new_text.c_str());
+	txt_to_send->redraw();
+	if (new_text[0] == ']') send_text(true);
 }
 
 void send_text(bool state)
@@ -663,13 +669,13 @@ void cwio_new_text(std::string txt)
 
 void cwio_clear_text()
 {
-	txt_to_send->value("");
+	txt_to_send->clear();
 	txt_to_send->redraw();
 }
 
 void cwio_clear_sent_text()
 {
-	cw_sent_buffer->text("");
+	cw_sent_text->clear();
 	cw_sent_text->redraw();
 }
 
@@ -691,7 +697,7 @@ void exec_msg(int n)
 		cwio_editor->show();
 		return;
 	}
-	add_cwio(progStatus.cwio_msgs[n]);
+	add_cwio_msg(progStatus.cwio_msgs[n]);
 }
 
 void cancel_edit()
@@ -737,7 +743,7 @@ void control_function_keys()
 			return;
 		}
 		if (key == 'c') {
-			txt_to_send->value("");
+			txt_to_send->clear();
 			return;
 		}
 	}
@@ -748,7 +754,7 @@ void control_function_keys()
 
 void calibrate_cwio()
 {
-	txt_to_send->value("");
+	txt_to_send->clear();
 	btn_cwioSEND->value(0);
 
 	cwio_process = END;

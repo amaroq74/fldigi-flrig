@@ -1,30 +1,27 @@
 // ----------------------------------------------------------------------------
 //      icons.cxx
 //
-// Copyright (C) 2008
-//              Stelios Bounanos, M0GLD
+// Copyright (C) 2008 Stelios Bounanos, M0GLD
+//               2025 David Freese, W1HKJ
 //
 // This file is part of flrig.
 //
-// This is free software; you can redistribute it and/or modify
+// flrig is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 3 of the License, or
 // (at your option) any later version.
 //
-// This software is distributed in the hope that it will be useful,
+// flrig is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//
-// =====================================================================
 // ----------------------------------------------------------------------------
 
-#include "config.h"
+#include <config.h>
 #include "icons.h"
-#include "util.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Menu_Item.H>
@@ -68,7 +65,7 @@ const char* make_icon_label(const char* text, const char** pixmap)
 {
 #if USE_IMAGE_LABELS
 	static imap_t* imap_ = 0;
-	if (unlikely(!imap_)) {
+	if (!imap_) {
 		imap = imap_ = new imap_t;
 		Fl::set_labeltype(FL_EMPTY_LABEL, draw_empty, measure_empty);
 	}
@@ -131,7 +128,7 @@ void set_icon_label(Fl_Menu_Item* item)
 #if USE_IMAGE_LABELS
 	set_icon_label_(item);
 #else
-	// this isn't needed but it simplifies fldigi's UI setup code
+	// this isn't needed but it simplifies flrig's UI setup code
 	if (item->labeltype() == _FL_MULTI_LABEL)
 		item->labeltype(FL_NORMAL_LABEL);
 #endif
@@ -253,8 +250,6 @@ void set_message_icon(const char** pixmap)
 	Fl_Widget* msg = fl_message_icon();
 	msg->label("");
 	msg->align(FL_ALIGN_TOP_LEFT | FL_ALIGN_INSIDE);
-	if (msg->parent() != NULL)
-		msg->color(msg->parent()->color());
 	msg->box(FL_NO_BOX);
 	msg->image(msg_icon = new Fl_Pixmap(pixmap));
 }

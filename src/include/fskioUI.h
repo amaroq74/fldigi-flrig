@@ -11,7 +11,9 @@ extern Fl_Double_Window *fsklog_viewer;
 #include "status.h"
 #include "fsk.h"
 #include "ValueSlider.h"
-extern Fl_Input2 *FSK_txt_to_send;
+#include "FTextView.h"
+extern FTextView *FSK_sent_text;
+extern FTextEdit *FSK_txt_to_send;
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Button.H>
 extern Fl_Button *btn_fskio_config;
@@ -19,8 +21,6 @@ extern Fl_Button *btn_fskio_clear;
 #include <FL/Fl_Light_Button.H>
 extern Fl_Light_Button *btn_fskioSEND;
 extern Fl_Button *FSK_btn_msg[12];
-#include <FL/Fl_Text_Display.H>
-extern Fl_Text_Display *FSK_sent_text;
 Fl_Double_Window* fskio_window();
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Box.H>

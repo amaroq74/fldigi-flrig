@@ -45,6 +45,32 @@ struct status {
 	int		memW;
 	int		memH;
 
+	int		cwioUI_X;
+	int		cwioUI_Y;
+	int		cwioUI_W;
+	int		cwioUI_H;
+	int		cw_sent_bkgnd_color;
+	int		cw_sent_text_font;
+	int 	cw_sent_text_size;
+	int		cw_sent_font_color;
+	int		txt_to_send_bkgnd_color;
+	int		txt_to_send_font;
+	int 	txt_to_send_size;
+	int		txt_to_send_font_color;
+
+	int		fskUI_X;
+	int		fskUI_Y;
+	int		fskUI_W;
+	int		fskUI_H;
+	int		fsk_sent_bkgnd_color;
+	int		fsk_sent_text_font;
+	int 	fsk_sent_text_size;
+	int		fsk_sent_font_color;
+	int		fsk_txt_to_send_bkgnd_color;
+	int		fsk_txt_to_send_font;
+	int 	fsk_txt_to_send_size;
+	int		fsk_txt_to_send_font_color;
+
     int     metersX;
     int     metersY;
     bool	meters_dialog_visible;

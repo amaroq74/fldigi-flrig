@@ -19,9 +19,6 @@ decl {\#include "dialogs.h"} {private local
 decl {\#include <FL/Fl_Double_Window.H>} {public global
 }
 
-decl {\#include <FL/Fl_Text_Buffer.H>} {public global
-}
-
 decl {\#include "cwio.h"} {private local
 }
 
@@ -34,23 +31,30 @@ decl {const char ps[] = "~%&+={}<>@";} {private local
 decl {const char szProsigns[] = "~|%|&|+|=|{|}|<|>|@";} {private local
 }
 
-decl {Fl_Text_Buffer *cw_sent_buffer;} {public local
-}
-
 Function {new_cwio_dialog()} {open
 } {
   Fl_Window {} {
     label {CW keying} open
-    xywh {712 119 670 203} type Double resizable
+    xywh {667 241 670 203} type Double resizable
     code0 {\#include "status.h"}
     code1 {\#include "cwio.h"}
     code2 {\#include "ValueSlider.h"} visible
   } {
-    Fl_Input txt_to_send {
+    Fl_Text_Display cw_sent_text {
+      xywh {1 2 667 90} color 20 align 17 textfont 13 textsize 16 resizable
+      code0 {\#include "FTextView.h"}
+      code1 {o->color(progStatus.cw_sent_bkgnd_color);}
+      code2 {o->textfont(progStatus.cw_sent_text_font); o->textsize(progStatus.cw_sent_text_size);}
+      code3 {o->setFontColor(progStatus.cw_sent_font_color);}
+      class FTextView
+    }
+    Fl_Input txt_to_send {selected
+      xywh {2 94 668 50} color 15 align 16 when 1 textfont 13 textsize 16
+      code0 {o->color(progStatus.txt_to_send_bkgnd_color);}
+      code1 {o->textfont(progStatus.txt_to_send_font); o->textsize(progStatus.txt_to_send_size);}
+      code2 {o->setFontColor(progStatus.txt_to_send_font_color);}
       callback {control_function_keys();}
-      xywh {2 104 666 40} type Multiline color 15 align 16 when 1 textfont 13 textsize 16
-      code0 {\#include "flinput2.h"}
-      class Fl_Input2
+      class FTextEdit
     }
     Fl_Group {} {open
       xywh {0 147 670 56}
@@ -178,11 +182,6 @@ Edit - Control left click} xywh {614 177 50 22}
         callback {cwlog_view();}
         tooltip {View cwlogbook} xywh {294 148 75 22}
       }
-    }
-    Fl_Text_Display cw_sent_text {selected
-      xywh {1 2 666 100} color 20 align 17 textfont 13 textsize 16 resizable
-      code0 {cw_sent_buffer = new Fl_Text_Buffer();}
-      code1 {o->buffer(cw_sent_buffer);}
     }
   }
 }

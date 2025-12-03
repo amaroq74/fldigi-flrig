@@ -54,7 +54,6 @@ extern void reset_cwioport();
 
 extern int  start_cwio_thread();
 extern void stop_cwio_thread();
-extern void add_cwio(std::string);
 extern void send_text(bool);
 extern void cwio_clear_text();
 extern void cwio_clear_sent_text();
@@ -73,6 +72,8 @@ extern void calibrate_cwio();
 extern void open_cwio_config();
 
 extern void add_cwio(std::string);
+extern void add_cwio_msg(std::string);
+
 extern void cwio_key(bool state);
 
 #endif

@@ -12,11 +12,12 @@
 Fl_Double_Window *cwlog_viewer;
 static const char ps[] = "~%&+={}<>@";
 static const char szProsigns[] = "~|%|&|+|=|{|}|<|>|@";
-Fl_Text_Buffer *cw_sent_buffer;
 
-Fl_Input2 *txt_to_send=(Fl_Input2 *)0;
+FTextView *cw_sent_text=(FTextView *)0;
 
-static void cb_txt_to_send(Fl_Input2*, void*) {
+FTextEdit *txt_to_send=(FTextEdit *)0;
+
+static void cb_txt_to_send(FTextEdit*, void*) {
   control_function_keys();
 }
 
@@ -111,14 +112,28 @@ static void cb_btn_view_cwlog(Fl_Button*, void*) {
   cwlog_view();
 }
 
-Fl_Text_Display *cw_sent_text=(Fl_Text_Display *)0;
-
 Fl_Double_Window* new_cwio_dialog() {
   Fl_Double_Window* w;
   { Fl_Double_Window* o = new Fl_Double_Window(670, 203, gettext("CW keying"));
     w = o; (void)w;
-    { txt_to_send = new Fl_Input2(2, 104, 666, 40);
-      txt_to_send->type(4);
+    { FTextView* o = cw_sent_text = new FTextView(1, 2, 667, 90);
+      cw_sent_text->box(FL_DOWN_FRAME);
+      cw_sent_text->color((Fl_Color)20);
+      cw_sent_text->selection_color(FL_SELECTION_COLOR);
+      cw_sent_text->labeltype(FL_NORMAL_LABEL);
+      cw_sent_text->labelfont(0);
+      cw_sent_text->labelsize(14);
+      cw_sent_text->labelcolor(FL_FOREGROUND_COLOR);
+      cw_sent_text->textfont(13);
+      cw_sent_text->textsize(16);
+      cw_sent_text->align(Fl_Align(FL_ALIGN_TOP|FL_ALIGN_INSIDE));
+      cw_sent_text->when(FL_WHEN_RELEASE);
+      Fl_Group::current()->resizable(cw_sent_text);
+      o->color(progStatus.cw_sent_bkgnd_color);
+      o->textfont(progStatus.cw_sent_text_font); o->textsize(progStatus.cw_sent_text_size);
+      o->setFontColor(progStatus.cw_sent_font_color);
+    } // FTextView* cw_sent_text
+    { FTextEdit* o = txt_to_send = new FTextEdit(2, 94, 668, 50);
       txt_to_send->box(FL_DOWN_BOX);
       txt_to_send->color(FL_SELECTION_COLOR);
       txt_to_send->selection_color(FL_SELECTION_COLOR);
@@ -131,7 +146,10 @@ Fl_Double_Window* new_cwio_dialog() {
       txt_to_send->callback((Fl_Callback*)cb_txt_to_send);
       txt_to_send->align(Fl_Align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE));
       txt_to_send->when(FL_WHEN_CHANGED);
-    } // Fl_Input2* txt_to_send
+      o->color(progStatus.txt_to_send_bkgnd_color);
+      o->textfont(progStatus.txt_to_send_font); o->textsize(progStatus.txt_to_send_size);
+      o->setFontColor(progStatus.txt_to_send_font_color);
+    } // FTextEdit* txt_to_send
     { Fl_Group* o = new Fl_Group(0, 147, 670, 56);
       { Fl_Value_Slider2* o = sldr_cwioWPM = new Fl_Value_Slider2(4, 149, 240, 20, gettext("WPM"));
         sldr_cwioWPM->tooltip(gettext("My transmit CW WPM"));
@@ -235,15 +253,6 @@ Fl_Double_Window* new_cwio_dialog() {
       } // Fl_Button* btn_view_cwlog
       o->end();
     } // Fl_Group* o
-    { Fl_Text_Display* o = cw_sent_text = new Fl_Text_Display(1, 2, 666, 100);
-      cw_sent_text->color((Fl_Color)20);
-      cw_sent_text->textfont(13);
-      cw_sent_text->textsize(16);
-      cw_sent_text->align(Fl_Align(FL_ALIGN_TOP|FL_ALIGN_INSIDE));
-      Fl_Group::current()->resizable(cw_sent_text);
-      cw_sent_buffer = new Fl_Text_Buffer();
-      o->buffer(cw_sent_buffer);
-    } // Fl_Text_Display* cw_sent_text
     o->end();
   } // Fl_Double_Window* o
   return w;

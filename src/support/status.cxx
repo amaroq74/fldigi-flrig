@@ -40,6 +40,9 @@
 #include "rigbase.h"
 #include "debug.h"
 
+#include "cwioUI.h"
+#include "fskioUI.h"
+
 std::string xcvr_name = szNORIG;
 
 int current_ui_size = -1;
@@ -58,6 +61,32 @@ status progStatus = {
 	20,			// int memY;
 	600,		// int memW;
 	164,		// int memH;
+
+	50,			// int		cwioUI_X;
+	200,		// int		cwioUI_Y;
+	670,		// int		cwioUI_W;
+	210,		// int		cwioUI_H;
+	FL_WHITE,	// Fl_Color	cw_sent_bkgnd_color;
+	4,			// Fl_Font	cw_sent_text_font;
+	14,			// int 		cw_sent_text_size;
+	FL_BLACK,	// int		cw_sent_font_color;
+	FL_WHITE,	// Fl_Color	txt_to_send_bkgnd_color;
+	4,			// Fl_Font	txt_to_send_font;
+	14,			// int 		txt_to_send_size;
+	FL_BLACK,	// int		txt_to_send_font_color;
+
+	50,			// int		fskUI_X;
+	200,		// int		fskUI_Y;
+	670,		// int		fskUI_W;
+	210,		// int		fskUI_H;
+	FL_WHITE,	// Fl_Color	fsk_sent_bkgnd_color;
+	4,			// Fl_Font	fsk_sent_text_font;
+	14,			// int 		fsk_sent_text_font_size;
+	FL_BLACK,	// int		fsk_sent_font_color;
+	FL_WHITE,	// Fl_Color	fsk_txt_to_send_bkgnd_color;
+	4,			// Fl_Font	fsk_txt_to_send_font;
+	14,			// int 		fsk_txt_to_send_size;
+	FL_BLACK,	// int		fsk_txt_to_send_font_color;
 
 	785,        // int metersX;
 	50,         // int metersy;
@@ -938,7 +967,37 @@ void status::saveLastState()
 		memW = dlgMemoryDialog->w();
 		memH = dlgMemoryDialog->h();
 	}
-	
+
+	if (cwio_keyer_dialog) {
+		cwioUI_X = cwio_keyer_dialog->x();
+		cwioUI_Y = cwio_keyer_dialog->y();
+		cwioUI_W = cwio_keyer_dialog->w();
+		cwioUI_H = cwio_keyer_dialog->h();
+		cw_sent_bkgnd_color = cw_sent_text->color();
+		cw_sent_text_font = cw_sent_text->textfont();
+		cw_sent_text_size = cw_sent_text->textsize();
+		cw_sent_font_color = cw_sent_text->textcolor();
+		txt_to_send_bkgnd_color = txt_to_send->color();
+		txt_to_send_font = txt_to_send->textfont();
+		txt_to_send_size = txt_to_send->textsize();
+		txt_to_send_font_color = txt_to_send->textcolor();
+	}
+
+	if (FSK_keyer_dialog) {
+		fskUI_X = FSK_keyer_dialog->x();
+		fskUI_Y = FSK_keyer_dialog->y();
+		fskUI_W = FSK_keyer_dialog->w();
+		fskUI_H = FSK_keyer_dialog->h();
+		fsk_sent_bkgnd_color = FSK_sent_text->color();
+		fsk_sent_text_font = FSK_sent_text->textfont();
+		fsk_sent_text_size = FSK_sent_text->textsize();
+		fsk_sent_font_color = FSK_sent_text->textcolor();
+		fsk_txt_to_send_bkgnd_color = FSK_txt_to_send->color();
+		fsk_txt_to_send_font = FSK_txt_to_send->textfont();
+		fsk_txt_to_send_size = FSK_txt_to_send->textsize();
+		fsk_txt_to_send_font_color = FSK_txt_to_send->textcolor();
+	}
+
 	if (meters_dialog)
 	{
 		metersX = meters_dialog->x();
@@ -981,6 +1040,32 @@ void status::saveLastState()
 	spref.set("memY", memY);
 	spref.set("memW", memW);
 	spref.set("memH", memH);
+
+	spref.set("cwioUI_X", cwioUI_X);
+	spref.set("cwioUI_Y", cwioUI_Y);
+	spref.set("cwioUI_W", cwioUI_W);
+	spref.set("cwioUI_H", cwioUI_H);
+	spref.set("cw_sent_bkgnd_color", cw_sent_bkgnd_color);
+	spref.set("cw_sent_text_font", cw_sent_text_font);
+	spref.set("cw_sent_text_size", cw_sent_text_size);
+	spref.set("cw_sent_font_color", cw_sent_font_color);
+	spref.set("txt_to_send_bkgnd_color", txt_to_send_bkgnd_color);
+	spref.set("txt_to_send_font", txt_to_send_font);
+	spref.set("txt_to_send_size", txt_to_send_size);
+	spref.set("txt_to_send_font_color", txt_to_send_font_color);
+
+	spref.set("fskUI_X", fskUI_X);
+	spref.set("fskUI_Y", fskUI_Y);
+	spref.set("fskUI_W", fskUI_W);
+	spref.set("fskUI_H", fskUI_H);
+	spref.set("fsk_sent_bkgnd_color", fsk_sent_bkgnd_color);
+	spref.set("fsk_sent_text_font", fsk_sent_text_font);
+	spref.set("fsk_sent_text_size", fsk_sent_text_size);
+	spref.set("fsk_sent_font_color", fsk_sent_font_color);
+	spref.set("fsk_txt_to_send_bkgnd_color", fsk_txt_to_send_bkgnd_color);
+	spref.set("fsk_txt_to_send_font", fsk_txt_to_send_font);
+	spref.set("fsk_txt_to_send_size", fsk_txt_to_send_size);
+	spref.set("fsk_txt_to_send_font_color", fsk_txt_to_send_font_color);
 
 	spref.set("metersx", metersX);
 	spref.set("metersy", metersY);
@@ -1613,6 +1698,32 @@ bool status::loadXcvrState(std::string xcvr)
 		spref.get("memY", memY, memY);
 		spref.get("memW", memW, memW);
 		spref.get("memH", memH, memH);
+
+		spref.get("cwioUI_X", cwioUI_X, cwioUI_X);
+		spref.get("cwioUI_Y", cwioUI_Y, cwioUI_Y);
+		spref.get("cwioUI_W", cwioUI_W, cwioUI_W);
+		spref.get("cwioUI_H", cwioUI_H, cwioUI_H);
+		spref.get("cw_sent_bkgnd_color", cw_sent_bkgnd_color, cw_sent_bkgnd_color);
+		spref.get("cw_sent_text_font", cw_sent_text_font, cw_sent_text_font);
+		spref.get("cw_sent_text_size", cw_sent_text_size, cw_sent_text_size);
+		spref.get("cw_sent_font_color", cw_sent_font_color, cw_sent_font_color);
+		spref.get("cw_txt_to_send_bkgnd_color", txt_to_send_bkgnd_color, txt_to_send_bkgnd_color);
+		spref.get("cw_txt_to_send_font", txt_to_send_font, txt_to_send_font);
+		spref.get("cw_txt_to_send_size", txt_to_send_size, txt_to_send_size);
+		spref.get("cw_txt_to_send_font_color", txt_to_send_font_color, txt_to_send_font_color);
+
+		spref.get("fskUI_X", fskUI_X, fskUI_X);
+		spref.get("fskUI_Y", fskUI_Y, fskUI_Y);
+		spref.get("fskUI_W", fskUI_W, fskUI_W);
+		spref.get("fskUI_H", fskUI_H, fskUI_H);
+		spref.get("fsk_sent_bkgnd_color", fsk_sent_bkgnd_color, fsk_sent_bkgnd_color);
+		spref.get("fsk_sent_text_font", fsk_sent_text_font, fsk_sent_text_font);
+		spref.get("fsk_sent_text_size", fsk_sent_text_size, fsk_sent_text_size);
+		spref.get("fsk_sent_font_color", fsk_sent_font_color, fsk_sent_font_color);
+		spref.get("fsk_txt_to_send_bkgnd_color", fsk_txt_to_send_bkgnd_color, fsk_txt_to_send_bkgnd_color);
+		spref.get("fsk_txt_to_send_font", fsk_txt_to_send_font, fsk_txt_to_send_font);
+		spref.get("fsk_txt_to_send_size", fsk_txt_to_send_size, fsk_txt_to_send_size);
+		spref.get("fsk_txt_to_send_font_color", fsk_txt_to_send_font_color, fsk_txt_to_send_font_color);
 
 		spref.get("metersx", metersX, metersX);
 		spref.get("metersy", metersY, metersY);

@@ -257,6 +257,7 @@ flrig_SOURCES += \
 	UI/K4_ui.cxx \
 	UI/rigpanel.cxx \
 	UI/meters_dialog.cxx \
+	widgets/ascii.cxx \
 	widgets/combo.cxx \
 	widgets/Fl_SigBar.cxx \
 	widgets/flbrowser2.cxx \
@@ -264,6 +265,10 @@ flrig_SOURCES += \
 	widgets/flslider2.cxx \
 	widgets/font_browser.cxx \
 	widgets/FreqControl.cxx \
+	widgets/Fl_Text_Buffer_mod.cxx \
+	widgets/Fl_Text_Display_mod.cxx \
+	widgets/Fl_Text_Editor_mod.cxx \
+	widgets/FTextView.cxx \
 	widgets/pl_tones.cxx \
 	widgets/ValueSlider.cxx \
 	widgets/hspinner.cxx \
@@ -282,6 +287,7 @@ flrig_SOURCES += \
 	log/cwlog.cxx \
 	log/fsklog.cxx \
 	graphics/pixmaps.cxx \
+	graphics/pixmaps_tango.cxx \
 	graphics/icons.cxx \
 	graphics/images.cxx \
 	gpio/gpio_common.cxx \
@@ -305,6 +311,7 @@ EXTRA_DIST = \
 	UI/xcvr_setup.cxx \
 	UI/meters_setup.cxx \
 	UI/power_meter_setup.cxx \
+	include/ascii.h \
 	include/cmedia.h \
 	include/hid_lin.h \
 	include/hid_mac.h \
@@ -334,6 +341,10 @@ EXTRA_DIST = \
 	include/pixmaps.h \
 	include/Fl_SigBar.h \
 	include/FreqControl.h \
+	include/Fl_Text_Buffer_mod.H \
+	include/Fl_Text_Display_mod.H \
+	include/Fl_Text_Editor_mod.H \
+	include/FTextView.h \
 	include/hspinner.h \
 	include/other/AOR5K.h \
 	include/other/sunsdr2.h \

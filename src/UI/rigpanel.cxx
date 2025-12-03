@@ -586,6 +586,9 @@ static void cb_CWkeyer(Fl_Menu_*, void*) {
 		btn_msg[n]->label(progStatus.cwio_labels[n].c_str());
 		btn_msg[n]->redraw_label();
 	}
+	cwio_keyer_dialog->resize(
+		progStatus.cwioUI_X, progStatus.cwioUI_Y,
+		progStatus.cwioUI_W, progStatus.cwioUI_H );
 	cwio_keyer_dialog->show();
 }
 
@@ -596,6 +599,9 @@ static void cb_FSKkeyer(Fl_Menu_*, void*) {
 		FSK_btn_msg[n]->label(progStatus.FSK_labels[n].c_str());
 		FSK_btn_msg[n]->redraw_label();
 	}
+	FSK_keyer_dialog->resize(
+		progStatus.fskUI_X, progStatus.fskUI_Y,
+		progStatus.fskUI_W, progStatus.fskUI_H );
 	FSK_keyer_dialog->show();
 }
 
