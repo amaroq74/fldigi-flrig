@@ -222,7 +222,7 @@ int FSK::baudot_enc(int data) {
 		if (data == letters[i]) {
 			return (i | FSK_LETTERS);
 		}
-		if (data == figures[i]) {
+		else if (data == figures[i]) {
 			return (i | FSK_FIGURES);
 		}
 	}
