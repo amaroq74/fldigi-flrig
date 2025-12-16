@@ -163,6 +163,31 @@ PTT can be activated at FLRIG or using the T/R button on FLDIGI.  FLDIGI
 also engages the PTT via the macro \<TX\> \<RX\> tags.  When operating digital
 modes with FLDIGI you should use the PTT from FLDIGI.
 
+\section dialog_resize Reszing Dialog
+
+Dialog resizing (scaling) is supported on all distribution platforms beginning with
+version 2.0.19.  This is a direct result of a change to the user interface library, 
+Fast Light Tool Kit, to Fltk 1.4.4.  The Fltk initialization code attempts to
+make the user experience the same display size on all video hardware.  It is successful most
+of the time, but the code often produces a smaller than useful dialog size. The flrig main 
+and support dialogs can be scaled from 50% to 300% of the default size.  
+
+Dialog scaling is accomplished using these key combinations:
+
+On Windows & Linux
+<ul>
+<li>Control + : increase size</li>
+<li>Control - : decrease size</li>
+</ul>
+On MacOS
+<ul>
+<li>Command + : increase size</li>
+<li>Command - : decrease size</li>
+</ul>
+
+The screen position (X, Y), dimension (W, H), and scale factor will be 
+remembered and restored between execution sessions.
+
 \ref contents "Return to Contents"
 
 */
