@@ -1,7 +1,24 @@
-2025-10-05  dave-w1hkj  <w1hkj25@gmail.com>
+2025-12-17  dave-w1hkj  <w1hkj25@gmail.com>
 
-	a26ce8a6: Version 2.0.09
-	888514f6: Reject xmlrpc mode change
+	2d95331d: Version 2.0.10
+	80988f41: Documentation update
+	ae481dee: baudot encode
+	68ce68c2: cwio & fskio ui
+	d2e1e28e: Add Text Sent control
+	e38dad07: gpio update
+	55220690: documentation update
+	a446880c: Serial Port Discovery
+	d64085b9: IC 7410 mode changes
+	b3c20df0: QMXp
+	8128dece: Debug read_mode()
+	241dd403: make pixmap
+	15c1ec1f: Screen number / scale
+	a4f6d502: CW ptt signaling
+	374d52fb: FSK parameters
+	53aae342: fsk mods
+	c9baa92a: Dialog placement
+	8147f998: Version 2.0.09
+	08e1bd96: Reject xmlrpc mode change
 	7be04136: Windows small UI
 	461deace: gcc warnings
 	2d9aa65c: Version 2.0.8
