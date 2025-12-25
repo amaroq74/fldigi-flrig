@@ -661,18 +661,10 @@ int main (int argc, char *argv[])
 
 	// load the XPM and prepare the mask
 	make_pixmap(&Rig_icon_pixmap, flrig_icon);
-	// so we fix that AFTER the window is shown (see below)
+
 	mainwindow->icon((char *)Rig_icon_pixmap);
 	mainwindow->show(argc, argv);
 
-	{
-	// read in the current window hints, then modify them to allow icon transparency
-		XWMHints* hints = XGetWMHints(fl_display, fl_xid(mainwindow));
-		hints->flags |= IconMaskHint; // ensure transparency mask is enabled for the XPM icon
-		hints->icon_mask |= IconPixmapHint;
-		XSetWMHints(fl_display, fl_xid(mainwindow), hints);
-		XFree(hints);
-	}
 #else
 	mainwindow->show(argc, argv);
 #endif
