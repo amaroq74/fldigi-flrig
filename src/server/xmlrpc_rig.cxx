@@ -42,10 +42,13 @@ using namespace XmlRpc;
 
 int xmlrpc_verbosity = 0;
 
+bool connected_to_client = false;
+
 XmlRpcClient *flrig_client = (XmlRpcClient *)0;
 
-bool is_binary(std::string s)
+static bool is_binary(std::string s)
 {
+xml_trace(3, "test for binary: '", s.c_str(), "'");
 	for (size_t n = 0; n < s.length(); n++)
 		if (!isalnum(s[n]))
 			return true;
@@ -78,45 +81,73 @@ bool xml_ptt_state()
 	}
 }
 
+static std::string send_hex(std::string s)
+{
+	if (s.empty()) return "";
+	std::string send  = "";
+	char hexval[4] = "   ";
+	for (size_t n = 0; n < s.length(); n++) {
+		snprintf(hexval, sizeof(hexval), " %2X", (char)s[n]);
+		send.append(hexval);
+	}
+	return send;
+}
 
-bool connected_to_client = false;
+static std::string recv_hex(std::string s)
+{
+	if (s.empty()) return "";
+	std::string recv = "";
+	std::string hexval = "";
+	unsigned int C;
+	for (size_t n = 0; n < s.length(); n += 3) {
+		hexval = s.substr(n, 3);
+		sscanf(hexval.c_str(), " %2X", &C);
+		recv += C & 0xFF;
+	}
+	return recv;
+}
+
+void xml_cmd_string(std::string send)
+{
+	XmlRpcValue Args, result;
+		Args = send_hex(send);
+
+	try {
+		xml_trace(2, "rig_cmd_string send:", send.c_str());
+		xml_trace(2, "                    ", ((std::string)(Args)).c_str());
+
+		flrig_client->execute("rig.cmd_string", Args, result);
+
+		return;
+
+	} catch (XmlRpcException *err) {
+		xml_trace(2, "rig.cmd_string: %s", err->getMessage().c_str());
+		return;
+	}
+}
 
 std::string xml_cat_string( std::string send )
 {
 	XmlRpcValue Args, result;
-	if (is_binary(send))
-		Args = (std::string)to_hex(send);
-	else
-		Args = (std::string)send;
+		Args = send_hex(send);
 
 	try {
+		xml_trace(2, "rig_cat_string send:", send.c_str());
+		xml_trace(2, "                    ", ((std::string)(Args)).c_str());
 
-		xml_trace(2, "rig_client_string send:", to_hex(send).c_str());
+		if (flrig_client->execute("rig.cat_string", Args, result)) {
 
-		if (flrig_client->execute("rig.client_string", Args, result)) {
+			xml_trace(2, "rig.cat_string recv:", ((std::string)result).c_str());
 
-			std::string res = (std::string)result;
-
-			xml_trace(2, "rig.client_string recv:", res.c_str());
-
-			if (res.find("x") != std::string::npos) {
-				std::string raw;
-				size_t p = 0;
-				unsigned int val;
-				while (( p = res.find("x", p)) != std::string::npos) {
-					sscanf(&res[p+1], "%x", &val);
-					raw += (unsigned char) val;
-					p += 3;
-				}
-				res = raw;
-			}
+			std::string res = recv_hex((std::string)result);
 
 			return res;
+
 		} else {
 			return "?";
 		}
 	} catch (XmlRpcException *err) {
-		xml_trace(2, "rig.client_string: %s", err->getMessage().c_str());
+		xml_trace(2, "rig.cat_string: %s", err->getMessage().c_str());
 		return "?";
 	}
 }

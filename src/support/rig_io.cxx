@@ -203,8 +203,13 @@ int sendCommand (std::string s, int nread, int wait)
 	assignReplyStr("");
 
 	if (progStatus.xmlrpc_rig) {
-		respstr = xml_cat_string(s);
-		return respstr.length();
+		if (nread == 0) {
+			xml_cmd_string(s);
+			return 0;
+		} else {
+			respstr = xml_cat_string(s);
+			return respstr.length();
+		}
 	}
 
 	if (tci_running()) {

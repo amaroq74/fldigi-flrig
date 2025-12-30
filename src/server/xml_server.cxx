@@ -3274,47 +3274,57 @@ public:
 
 
 //----------------------------------------------------------------------
+static std::string send_hex(std::string s)
+{
+	if (s.empty()) return "";
+	std::string send  = "";
+	char hexval[4] = "   ";
+	for (size_t n = 0; n < s.length(); n++) {
+		snprintf(hexval, sizeof(hexval), " %2X", (char)s[n]);
+		send.append(hexval);
+	}
+	return send;
+}
 
-class rig_client_string : public XmlRpcServerMethod {
+static std::string recv_hex(std::string s)
+{
+	if (s.empty()) return "";
+	std::string recv = "";
+	std::string hexval = "";
+	unsigned int C;
+	for (size_t n = 0; n < s.length(); n += 3) {
+		hexval = s.substr(n, 3);
+		sscanf(hexval.c_str(), " %2X", &C);
+		recv += C & 0xFF;
+	}
+	return recv;
+}
+
+class rig_cmd_string : public XmlRpcServerMethod {
 public:
-	rig_client_string(XmlRpcServer* s) : XmlRpcServerMethod("rig.client_string", s) {}
+	rig_cmd_string(XmlRpcServer* s) : XmlRpcServerMethod("rig.cmd_string", s) {}
 
 		void execute(XmlRpcValue& params, XmlRpcValue& result) { 
 		Fl::awake(connection_ON);
 
 		result = (std::string)("");
-		std::string command = std::string(params[0]);
 
-		if (!progStatus.xmlrpc_rig && (!xcvr_online || disable_xmlrpc->value())) {
-			return;
-		}
+		std::string command = std::string(params[0]);
 
 		if (command.empty()) return;
 
-		std::string cmd = "";
+		std::string cmd = recv_hex(command);
 
-		size_t p = command.find("x");
-		if (p != std::string::npos) { // hex std::strings
-			unsigned int val;
-			while ( p != std::string::npos) {
-				sscanf(&command[p+1], "%x", &val);
-				cmd += (unsigned char) val;
-				p = command.find("x", p + 1);
-			}
-		} else
-			cmd = command;
-{
-		guard_lock serial_lock(&mutex_serial, "rig_client_string");
-
-		RigSerial->WriteBuffer(cmd.c_str(), cmd.length());
-}
-
-		xml_trace(2, "xmlrpc command:", command.c_str());
+		{
+			guard_lock serial_lock(&mutex_serial, "rig_cmd_string");
+			RigSerial->WriteBuffer(cmd.c_str(), cmd.length());
+			xml_trace(2, "xmlrpc command:", cmd.c_str());
+		}
 	}
 
-	std::string help() { return std::string("sends xmlrpc CAT std::string to flrig_server"); }
+	std::string help() { return std::string("xmlrpc cmd received from client flrig"); }
 
-} rig_client_string(&rig_server);
+} rig_cmd_string(&rig_server);
 
 //----------------------------------------------------------------------
 class rig_cat_string : public XmlRpcServerMethod {
@@ -3333,21 +3343,7 @@ public:
 
 		if (command.empty()) return;
 
-		for (size_t n = 0; n < command.length(); n++) command[n] = tolower(command[n]);
-
-		bool usehex = false;
-		std::string cmd = "";
-		if (command.find("x") != std::string::npos) { // hex std::strings
-			size_t p = 0;
-			unsigned int val;
-			usehex = true;
-			while (( p = command.find("x", p)) != std::string::npos) {
-				sscanf(&command[p+1], "%x", &val);
-				cmd += (unsigned char) val;
-				p += 3;
-			}
-		} else
-			cmd = command;
+		std::string cmd = recv_hex(command);
 
 		{
 			guard_lock lock2(&mutex_serial, "xml 39");
@@ -3359,58 +3355,15 @@ public:
 
 			waitResponse(progStatus.serial_timeout);
 			if (!respstr.empty()) {
-				result = usehex ?
-					str2hex(respstr.c_str(), respstr.length()) :
-					respstr;
+				result = send_hex(respstr);
 			} else
 				result = std::string("No response: ").append(selrig->name_);
 		}
-
-		xml_trace(2, "xmlrpc command:", command.c_str());
 	}
 
-	std::string help() { return std::string("sends xmlrpc CAT std::string to xcvr"); }
+	std::string help() { return std::string("xmlrpc cmd/resp from client flrig"); }
 
 } rig_cat_string(&rig_server);
-
-class rig_cat_priority : public XmlRpcServerMethod {
-public:
-	rig_cat_priority(XmlRpcServer* s) : XmlRpcServerMethod("rig.cat_priority", s) {}
-
-		void execute(XmlRpcValue& params, XmlRpcValue& result) { 
-		Fl::awake(connection_ON);
-
-		result = 0;
-		if (!xcvr_online || disable_xmlrpc->value()) {
-			return;
-		}
-		std::string command = std::string(params[0]);
-		if (command.empty()) return;
-
-		std::string cmd = "";
-		if (command.find("x") != std::string::npos) { // hex std::strings
-			size_t p = 0;
-			unsigned int val;
-			while (( p = command.find("x", p)) != std::string::npos) {
-				sscanf(&command[p+1], "%x", &val);
-				cmd += (unsigned char) val;
-				p += 3;
-			}
-		} else
-			cmd = command;
-
-		guard_lock lock2(&mutex_serial, "xml 40");
-
-		RigSerial->WriteBuffer(cmd.c_str(), cmd.length());
-		result = std::string("OK");
-
-		return;
-	}
-
-	std::string help() { return std::string("sends xmlrpc priority CAT std::string to xcvr"); }
-
-} rig_cat_priority(&rig_server);
-
 
 //------------------------------------------------------------------------------
 // Set cwio words per minute

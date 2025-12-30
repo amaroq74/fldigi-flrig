@@ -903,7 +903,7 @@ bool rigbase::id_OK(std::string ID, int wait)
 void rigbase::sendOK(std::string cmd)
 {
 	if (progStatus.xmlrpc_rig) {
-		xml_cat_string(cmd);
+		xml_cmd_string(cmd);
 		return;
 	}
 
