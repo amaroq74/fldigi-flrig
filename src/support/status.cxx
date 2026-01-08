@@ -572,7 +572,7 @@ status progStatus = {
 		"","","","","",""					// std::string	cwio_msgs[12];
 	},
 	{
-		"m2","m2","m3","m4","m4","m6",
+		"m1","m2","m3","m4","m4","m6",
 		"m7","m8","m9","m10","m11","m12"	// std::string	cwio_labels[12];
 	},
 	"=",		// std::string	BT;
