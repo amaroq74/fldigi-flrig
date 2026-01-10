@@ -613,9 +613,11 @@ static void cb_mnuPTT(Fl_Menu_*, void*) {
 	open_ptt_tab();
 }
 
+#if USE_LIBGPIOD
 static void cb_mnuGPIO(Fl_Menu_*, void*) {
 	open_gpio_tab();
 }
+#endif
 
 static void cb_mnuOTHER(Fl_Menu_*, void *) {
 	open_other_tab();

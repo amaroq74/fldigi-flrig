@@ -1184,18 +1184,9 @@ void read_squelch()
 	}
 }
 
-void set_ptt(void *d)
+void show_meters( void *tx )
 {
-	if (d == (void*)0) {
-		btnPTT->value(0);
-		sldrSWR->hide();
-		sldrSWR->redraw();
-		sldrRcvSignal->show();
-		sldrRcvSignal->redraw();
-		btnALC_IDD_SWR->hide();
-		scaleSmeter->show();
-	} else {
-		btnPTT->value(1);
+	if (tx == (void *)1) {
 		sldrRcvSignal->hide();
 		sldrRcvSignal->redraw();
 		scaleSmeter->hide();
@@ -1215,6 +1206,24 @@ void set_ptt(void *d)
 		btnALC_IDD_SWR->redraw();
 		btnALC_IDD_SWR->show();
 	}
+	else {
+		sldrSWR->hide();
+		sldrSWR->redraw();
+		sldrRcvSignal->show();
+		sldrRcvSignal->redraw();
+		btnALC_IDD_SWR->hide();
+		scaleSmeter->show();
+	}
+}
+
+void set_ptt(void *d)
+{
+	if (d == (void*)0) {
+		btnPTT->value(0);
+	} else {
+		btnPTT->value(1);
+	}
+	show_meters(d);
 }
 
 void check_ptt()
@@ -1773,8 +1782,8 @@ void * serial_thread_loop(void *d)
 				isRX = false;
 				smtrval = 0;
 				Fl::awake(update_UI_PTT);
-				Fl::awake(updateSmeter);
 			}
+			Fl::awake(show_meters, (void *)1);
 
 			if (progStatus.poll_frequency) {
 				guard_lock lk(&mutex_serial, "3");
@@ -1795,6 +1804,7 @@ void * serial_thread_loop(void *d)
 				Fl::awake(update_UI_PTT);
 				Fl::awake(zeroXmtMeters, 0);
 			}
+			Fl::awake(show_meters, (void *)0);
 
 			while ( rx_poll_group_1->poll != NULL ) {
 				if ( *(rx_poll_group_1->poll) ) {
