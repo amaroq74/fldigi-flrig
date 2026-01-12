@@ -271,7 +271,7 @@ int RIG_FDMDUO::get_power_out()
 	gett("");
 	if (ret < 10) return 0;
 
-	int pwr;
+	int pwr = 0;
 	sscanf(replystr.c_str(), "FP %d;", &pwr);
 	return pwr;
 }
@@ -281,6 +281,9 @@ int RIG_FDMDUO::power_scale()
 	return powerScale;
 }
 
+// WR0 01.51;
+// WR0!00.00;
+// 0123456789
 int RIG_FDMDUO::get_swr()
 {
 	cmd = "WR;";
@@ -289,12 +292,15 @@ int RIG_FDMDUO::get_swr()
 	gett("");
 	if (ret < 10) return 0;
 	size_t p = replystr.rfind("WR");
-	float swr = 0.0;
+	float swr = 1.0;
 
-	if (p != std::string::npos)
-		swr = atoi(&replystr[p+4]) + atoi(&replystr[p+7]) / 100.0;
+	if (p == std::string::npos) return 0;
+
+	if (replystr[p+3] == '!') return 0;
+
 	sscanf(&replystr[p+4], "%f", &swr);
-	swr *= 12.5;
+//printf("swr: %f\n", swr);
+	swr = 100 * log10(swr);
 	if (swr > 100) swr = 100;
 	return int(swr);
 }
@@ -832,8 +838,11 @@ int RIG_FDMDUO::get_noise()
 }
 
 // Tranceiver PTT on/off
+static int ptt_on_off = 0;
+
 void RIG_FDMDUO::set_PTT_control(int val)
 {
+	ptt_on_off = val;
 	if (val) cmd = "TX1;";
 	else cmd = "RX;";
 	set_trace(1, "set PTT");
@@ -844,6 +853,7 @@ void RIG_FDMDUO::set_PTT_control(int val)
 
 int RIG_FDMDUO::get_PTT()
 {
+	if (progStatus.disable_CW_ptt) return ptt_on_off;
 	cmd = "IF;";
 	get_trace(1, "get_PTT");
 	ret = wait_char(';', 38, 100, "get PTT", ASC);
@@ -1050,14 +1060,29 @@ int RIG_FDMDUO::get_volume_control()
 	return val;
 }
 
-void RIG_FDMDUO::tune_rig(int dummy)
+static int tune_state = 0;
+void RIG_FDMDUO::tune_rig(int keydown)
 {
-	cmd = "TX2;";
-	set_trace(1, "set TUNE");
-	sendCommand(cmd);
-	sett("");
-	showresp(WARN, ASC, "set PTT", cmd, "");
+	if (tune_state == 0 && keydown) {
+		cmd = "TX2;";
+		set_trace(1, "start TUNE");
+		sendCommand(cmd);
+		sett("");
+		showresp(WARN, ASC, "start PTT", cmd, "");
+		tune_state = 1;
+	} else {
+		cmd = "RX;";
+		set_trace(1, "stop TUNE");
+		sendCommand(cmd);
+		sett("");
+		showresp(WARN, ASC, "stop PTT", cmd, "");
+		tune_state = 0;
+	}
+}
 
+int RIG_FDMDUO::get_tune()
+{
+	return tune_state;
 }
 
 void RIG_FDMDUO::get_cw_spot_tone_min_max_step(int &min, int &max, int &step)
