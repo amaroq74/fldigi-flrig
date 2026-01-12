@@ -1536,30 +1536,30 @@ Fl_Group *createPTT(int X, int Y, int W, int H, const char *label)
 	Fl_Group *tab = new Fl_Group(X, Y, W, H, label);
 	tab->hide();
 
-	Fl_Group *grp_CW_ptt = new Fl_Group(X + 2, Y + 20, W - 4, 30,
+	Fl_Group *grp_CW_ptt = new Fl_Group(X + 2, Y + 2, W - 4, 48,
 		_("CW mode PTT"));
 		grp_CW_ptt->box(FL_ENGRAVED_BOX);
-		grp_CW_ptt->align(Fl_Align(FL_ALIGN_TOP_LEFT));
+		grp_CW_ptt->align(Fl_Align(FL_ALIGN_TOP_LEFT | FL_ALIGN_INSIDE));
 
 		Fl_Check_Button *btn_disable_CW_ptt = new Fl_Check_Button(
-			grp_CW_ptt->x() + 10, grp_CW_ptt->y() + 4, 200, 22,
-			_("disable PTT in CW mode"));
+			grp_CW_ptt->x() + 10, grp_CW_ptt->y() + 22, 200, 22,
+			_("CW break-in / no PTT"));
 			btn_disable_CW_ptt->value(progStatus.disable_CW_ptt);
 			btn_disable_CW_ptt->callback((Fl_Callback*)cb_disable_CW_ptt);
 
 	grp_CW_ptt->end();
 
 	Fl_Group *grp_catptt = new Fl_Group (
-		grp_CW_ptt->x(), grp_CW_ptt->y() + grp_CW_ptt->h() + 20,
-		grp_CW_ptt->w(), 60, _("PTT on CAT Serial Port"));
+		grp_CW_ptt->x(), grp_CW_ptt->y() + grp_CW_ptt->h() + 2,
+		grp_CW_ptt->w(), 78, _("PTT on CAT Serial Port"));
 
 		grp_catptt->box(FL_ENGRAVED_BOX);
-		grp_catptt->align(Fl_Align(FL_ALIGN_TOP_LEFT));
+		grp_catptt->align(Fl_Align(FL_ALIGN_TOP_LEFT | FL_ALIGN_INSIDE));
 
 		int incr = (grp_CW_ptt->w() - 10) / 3.5;
 
 		lbox_catptt = new Fl_ListBox(
-			grp_catptt->x() + 5, grp_catptt->y() + 8, 90, 22, _("CAT"));
+			grp_catptt->x() + 5, grp_catptt->y() + 26, 90, 22, _("CAT"));
 		lbox_catptt->tooltip(_("PTT is a CAT command (not hardware)"));
 		lbox_catptt->callback((Fl_Callback*)cb_lbox_catptt);
 		lbox_catptt->add("OFF|BOTH|SET|GET");
@@ -1567,7 +1567,7 @@ Fl_Group *createPTT(int X, int Y, int W, int H, const char *label)
 		lbox_catptt->align(FL_ALIGN_RIGHT);
 
 		lbox_rtsptt = new Fl_ListBox(
-			lbox_catptt->x() + incr, grp_catptt->y() + 8, 90, 22, _("RTS"));
+			lbox_catptt->x() + incr, grp_catptt->y() + 26, 90, 22, _("RTS"));
 		lbox_rtsptt->tooltip(_("RTS is ptt line"));
 		lbox_rtsptt->callback((Fl_Callback*)cb_lbox_rtsptt);
 		lbox_rtsptt->add("OFF|BOTH|SET|GET");
@@ -1575,7 +1575,7 @@ Fl_Group *createPTT(int X, int Y, int W, int H, const char *label)
 		lbox_rtsptt->align(FL_ALIGN_RIGHT);
 
 		lbox_dtrptt = new Fl_ListBox(
-			lbox_rtsptt->x() + incr, grp_catptt->y() + 8, 90, 22, _("DTR"));
+			lbox_rtsptt->x() + incr, grp_catptt->y() + 26, 90, 22, _("DTR"));
 		lbox_dtrptt->tooltip(_("DTR is ptt line"));
 		lbox_dtrptt->callback((Fl_Callback*)cb_lbox_dtrptt);
 		lbox_dtrptt->add("OFF|BOTH|SET|GET");
@@ -1601,14 +1601,14 @@ Fl_Group *createPTT(int X, int Y, int W, int H, const char *label)
 	grp_catptt->end();
 
 	Fl_Group *grp_ptt = new Fl_Group(
-		grp_catptt->x(), grp_catptt->y() + grp_catptt->h() + 20,
+		grp_catptt->x(), grp_catptt->y() + grp_catptt->h() + 2,
 		grp_catptt->w(), H - (grp_catptt->y() + grp_catptt->h() + 20),
 _("PTT control on Separate Serial Port"));
 		grp_ptt->box(FL_ENGRAVED_BOX);
-		grp_ptt->align(Fl_Align(FL_ALIGN_TOP_LEFT));
+		grp_ptt->align(Fl_Align(FL_ALIGN_TOP_LEFT | FL_ALIGN_INSIDE));
 
 		selectSepPTTPort = new Fl_ComboBox(
-			grp_catptt->x() + 50, grp_ptt->y() + 10,
+			grp_catptt->x() + 40, grp_ptt->y() + 28,
 			grp_ptt->w() - 54, 22, _("Port"));
 		selectSepPTTPort->tooltip(_("PTT on Separate Serial Port"));
 		selectSepPTTPort->box(FL_DOWN_BOX);
