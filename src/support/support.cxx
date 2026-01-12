@@ -149,6 +149,7 @@ bool bypass_serial_thread_loop = true;
 bool run_serial_thread = true;
 
 bool PTT = false;
+bool TUNE = false;
 
 int  powerlevel = 0;
 
@@ -1774,7 +1775,7 @@ void * serial_thread_loop(void *d)
 			check_ptt();
 		}
 
-		if (PTT ||
+		if (PTT || selrig->get_tune() ||
 			cwio_process == SEND ||
 			cwio_process == CALIBRATE ||
 			cwio_process == KEYDOWN ) {

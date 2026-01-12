@@ -108,9 +108,12 @@ void set_gpio_ptt(bool ptt)
 }
 
 #endif //USE_LIBGPIOD
+static int ptt_is_set = 0;
 
 void rigPTT(bool on)
 {
+	ptt_is_set = on;
+
 	if (progStatus.xmlrpc_rig) {
 		xmlrpc_ptt(on);
 		return;
@@ -152,6 +155,8 @@ bool ptt_state()
 {
 	if (progStatus.xmlrpc_rig)
 		return xml_ptt_state();
+
+	if (progStatus.disable_CW_ptt) return ptt_is_set;
 
 	if (progStatus.serial_catptt == PTT_BOTH || progStatus.serial_catptt == PTT_GET)		return selrig->get_PTT();
 	else if (progStatus.serial_dtrptt == PTT_BOTH || progStatus.serial_dtrptt == PTT_GET)	return selrig->get_PTT();
