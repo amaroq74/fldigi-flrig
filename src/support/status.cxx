@@ -956,9 +956,6 @@ void status::saveLastState()
 	int scrx = 0, scry = 0, scrw = 0, scrh = 0;
 	screen_number = mainwindow->screen_num();
 	screen_scale = Fl::screen_scale(screen_number) * 100;
-	Fl::screen_xywh( scrx, scry, scrw, scrh);
-	mainX -= scrx;
-	mainY -= scry;
 #endif
 
 	if (dlgMemoryDialog) {

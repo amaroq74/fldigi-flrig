@@ -370,7 +370,7 @@ void startup(void*)
 	if (iconified)
 		for (Fl_Window* w = Fl::first_window(); w; w = Fl::next_window(w))
 			w->iconize();
-
+/*
 	switch (progStatus.UIsize) {
 		case touch_ui :
 			mainwindow->size(progStatus.mainW, TOUCH_MAINH);
@@ -389,6 +389,7 @@ void startup(void*)
 			mainwindow->resize(progStatus.mainX, progStatus.mainY, progStatus.mainW, progStatus.mainH);
 			break;
 	}
+*/
 	start_server(xmlport);
 
 }
@@ -419,6 +420,22 @@ void flrig_terminate() {
 	std::cerr << "terminating" << std::endl;
 	fl_message("Closing flrig");
 	cbExit();
+}
+
+void set_screen() {
+#if FLRIG_FLTK_API_MINOR >3
+	cwio_keyer_dialog->screen_num( mainwindow->screen_num() );
+	cwio_editor->screen_num( mainwindow->screen_num() );
+	cwio_configure->screen_num( mainwindow->screen_num() );
+
+	FSK_keyer_dialog->screen_num( mainwindow->screen_num() );
+	FSK_editor->screen_num( mainwindow->screen_num() );
+	FSK_configure->screen_num( mainwindow->screen_num() );
+
+	dlgMemoryDialog->screen_num( mainwindow->screen_num() );
+	dlgDisplayConfig->screen_num( mainwindow->screen_num() );
+	dlgColorsDialog->screen_num( mainwindow->screen_num() );
+#endif
 }
 
 int main (int argc, char *argv[])
@@ -540,15 +557,13 @@ int main (int argc, char *argv[])
 	}
 	mainwindow->callback(exit_main);
 
-#if FLRIG_FLTK_API_MINOR >3
-	mainwindow->screen_num(progStatus.screen_number);
-	Fl::screen_scale(progStatus.screen_number, progStatus.screen_scale / 100.0);
-#endif
-
 	meters_dialog = win_meters();
 
 //	progStatus.UI_laststate();
 
+#if FLRIG_FLTK_API_MINOR >3
+	meters_dialog->screen_num(progStatus.screen_number);
+#endif
 	meters_dialog->resize(progStatus.metersX, progStatus.metersY, 210, 190);
 	if (progStatus.meters_dialog_visible)
 		meters_dialog->show();
@@ -566,7 +581,7 @@ int main (int argc, char *argv[])
 	dlgMemoryDialog = Memory_Dialog();
 	dlgDisplayConfig = DisplayDialog();
 	dlgColorsDialog = ColorsDialog();
-
+	set_screen();
 	Fl::lock();
 
 #if defined(__WIN32__) && defined(PTW32_STATIC_LIB)
@@ -630,10 +645,13 @@ int main (int argc, char *argv[])
 	sldrIDD->clear();
 	sldrSWR->clear();
 
+#if FLRIG_FLTK_API_MINOR >3
+	mainwindow->screen_num(progStatus.screen_number);
+	Fl::screen_scale(progStatus.screen_number, progStatus.screen_scale / 100.0);
+#endif
 	switch (progStatus.UIsize) {
 		case small_ui :
-			mainwindow->position(
-				progStatus.mainX, progStatus.mainY );
+			mainwindow->resize(progStatus.mainX, progStatus.mainY, progStatus.mainW, progStatus.mainH);
 			break;
 		case wide_ui :
 			mainwindow->resize(

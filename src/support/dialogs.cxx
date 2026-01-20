@@ -478,6 +478,9 @@ void cbFreqControlFontBrowser(Fl_Widget*, void*) {
 
 void cbPrefFont()
 {
+#if FLRIG_FLTK_API_MINOR >3
+	fntbrowser->screen_num( mainwindow->screen_num() );
+#endif
 	fntbrowser->fontNumber(progStatus.fontnbr);
 	fntbrowser->callback(cbFreqControlFontBrowser);
 	fntbrowser->show();
@@ -1206,6 +1209,9 @@ void cbCancelColorDialog()
 void setUIscheme()
 {
 	mnuScheme->value(mnuScheme->find_item(progStatus.ui_scheme.c_str()));
+#if FLRIG_FLTK_API_MINOR >3
+	dlgDisplayConfig->screen_num( mainwindow->screen_num() );
+#endif
 	dlgDisplayConfig->show();
 }
 
@@ -1364,6 +1370,9 @@ void setDisplayColors()
 
 void open_colors_dialog() {
 	setDisplayColors();
+#if FLRIG_FLTK_API_MINOR >3
+	dlgColorsDialog->screen_num( mainwindow->screen_num() );
+#endif
 	dlgColorsDialog->show();
 }
 
@@ -1376,6 +1385,9 @@ void openMemoryDialog()
 {
 	if (dlgMemoryDialog == NULL)
 		return;
+#if FLRIG_FLTK_API_MINOR >3
+	dlgMemoryDialog->screen_num( mainwindow->screen_num() );
+#endif
 	dlgMemoryDialog->show();
 }
 
@@ -1554,6 +1566,9 @@ showme('C');
 				} else {
 					int dH = mainwindow->decorated_h();
 showme('D');
+#if FLRIG_FLTK_API_MINOR >3
+	tabs_dialog->screen_num( mainwindow->screen_num() );
+#endif
 					if ((Y + dH + tabs_dialog->h()) > Fl::h()) {
 						tabs_dialog->resize( X, Y + mainwindow->h() - mainwindow->decorated_h() - tabs_dialog->decorated_h(), W, tabs_dialog->h() );
 					} else {
@@ -2192,6 +2207,9 @@ void cwlog_view()
 		} else
 			cwlog_open();
 	}
+#if FLRIG_FLTK_API_MINOR >3
+	cwlog_viewer->screen_num( mainwindow->screen_num() );
+#endif
 	cwlog_viewer->show();
 }
 

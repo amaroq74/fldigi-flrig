@@ -423,6 +423,9 @@ static const char *mtr_scales[] = {
 void select_power_meter_scales() {
 	if (!meter_scale_dialog)
 		meter_scale_dialog = power_meter_scale_select();
+#if FLRIG_FLTK_API_MINOR >3
+	meter_scale_dialog->screen_num( mainwindow->screen_num() );
+#endif
 	meter_scale_dialog->show();
 }
 
@@ -522,12 +525,18 @@ static void cb_mnuUIConfig(Fl_Menu_*, void*) {
 static void cb_mnu_show_meters(Fl_Menu_ *, void *) {
 	if (!meters_dialog)
 		meters_dialog = win_meters();
+#if FLRIG_FLTK_API_MINOR >3
+	meters_dialog->screen_num( mainwindow->screen_num() );
+#endif
 	meters_dialog->show();
 }
 
 static void cb_mnu_meter_filtering(Fl_Menu_*, void*) {
 	if (!meter_filters)
 		meter_filters = MetersDialog();
+#if FLRIG_FLTK_API_MINOR >3
+	meter_filters->screen_num( mainwindow->screen_num() );
+#endif
 	meter_filters->show();
 }
 
@@ -586,6 +595,9 @@ static void cb_CWkeyer(Fl_Menu_*, void*) {
 		btn_msg[n]->label(progStatus.cwio_labels[n].c_str());
 		btn_msg[n]->redraw_label();
 	}
+#if FLRIG_FLTK_API_MINOR >3
+	cwio_keyer_dialog->screen_num( mainwindow->screen_num() );
+#endif
 	cwio_keyer_dialog->resize(
 		progStatus.cwioUI_X, progStatus.cwioUI_Y,
 		progStatus.cwioUI_W, progStatus.cwioUI_H );
@@ -599,6 +611,9 @@ static void cb_FSKkeyer(Fl_Menu_*, void*) {
 		FSK_btn_msg[n]->label(progStatus.FSK_labels[n].c_str());
 		FSK_btn_msg[n]->redraw_label();
 	}
+#if FLRIG_FLTK_API_MINOR >3
+	FSK_keyer_dialog->screen_num( mainwindow->screen_num() );
+#endif
 	FSK_keyer_dialog->resize(
 		progStatus.fskUI_X, progStatus.fskUI_Y,
 		progStatus.fskUI_W, progStatus.fskUI_H );
