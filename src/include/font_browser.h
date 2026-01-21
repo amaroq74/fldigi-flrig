@@ -31,6 +31,7 @@
 
 #include <string>
 #include <list>
+#include <vector>
 
 #include <FL/Enumerations.H>
 #include <FL/Fl_Window.H>

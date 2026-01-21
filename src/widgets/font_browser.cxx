@@ -27,6 +27,7 @@
 #include <cassert>
 #include <iostream>
 #include <list>
+#include <vector>
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -191,13 +192,10 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	set_modal();
 	end();
 
-// Initializations
-
 	this->callback_ = 0;  // Initialize Widgets callback
 	this->data_ = 0;      // And the data
 
 	std::string fntname;
-	bool ok = true;
 
 	if (instance == 0) {
 
@@ -205,31 +203,42 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 
 		numfonts =   Fl::set_fonts("*"); // Nr of fonts available on the server
 
-		font_list.clear();
+		std::vector<font_pair> font_vector;
+		font_vector.clear();
 
 		fixed = new int[numfonts];
 
 		int j = 0;
 		for (int i = 0; i < numfonts; i++) {
 			fntname = Fl::get_font_name((Fl_Font)i);
-			ok = true;
 			for (size_t k = 0; k < fntname.length(); k++) {
 				if (fntname[k] < ' '   || fntname[k] > 'z' ||
 					fntname[k] == '\\' || fntname[k] == '@') { // disallowed chars in browser widget
-					ok = false;
 					break;
 				}
 			}
-			if (fntname.empty()) ok = false;
-			if (ok) {
-				nufont.name = fntname;
-				nufont.nbr = i;
-				font_list.push_back(nufont);
-				j++;
+
+			if (!fntname.empty()) {
+				bool isdup = false;
+				for (size_t n = 0; n < font_vector.size(); n++) {
+					if (fntname == font_vector[n].name) {
+						isdup = true;
+					}
+				}
+				if (!isdup) {
+					nufont.name = fntname;
+					nufont.nbr = i;
+					font_vector.push_back(nufont);
+					j++;
+				}
 			}
 		}
 
 		numfonts = j;
+
+		font_list.clear();
+		for (int n = 0; n < numfonts; n++)
+			font_list.push_back(font_vector[n]);
 
 		font_list.sort(font_compare);
 
@@ -242,6 +251,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 			temp_list.pop_front();
 			fixed[i++] = 0;
 		}
+
 		find_fonts();
 
 	} else {
