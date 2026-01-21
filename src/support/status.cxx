@@ -29,11 +29,11 @@
 
 #include "dialogs.h"
 
+#include "support.h"
 #include "status.h"
 #include "util.h"
 #include "rig.h"
 #include "rigs.h"
-#include "support.h"
 #include "config.h"
 #include "rigpanel.h"
 #include "ui.h"
@@ -1009,6 +1009,10 @@ void status::saveLastState()
 
 	if (tabsGeneric)
 		visible_tab = (tabsGeneric->value())->label();
+
+	std::string backupnames = RigHomeDir;
+	backupnames.append(xcvr_name).append(".prefs");
+	backup_files(backupnames);
 
 #if FLRIG_FLTK_API_MINOR < 4
 	Fl_Preferences spref(RigHomeDir.c_str(), "w1hkj.com", xcvr_name.c_str());

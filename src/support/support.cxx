@@ -3956,7 +3956,7 @@ void TRACED(saveFreqList)
 
 	if (!numinlist) return;
 
-	rotate_log(defFileName);
+	backup_files(defFileName);
 
 	std::ofstream oList(defFileName.c_str());
 	if (!oList) {

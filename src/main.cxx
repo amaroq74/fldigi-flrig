@@ -394,7 +394,7 @@ void startup(void*)
 
 }
 
-void rotate_log(std::string filename)
+void backup_files(std::string filename)
 {
 	std::string f1, f2, f3, f4, f5;
 
@@ -511,13 +511,13 @@ int main (int argc, char *argv[])
 	try {
 		std::string fname = RigHomeDir;
 		fname.append("debug_log.txt");
-		rotate_log(fname);
+		backup_files(fname);
 		debug::start(fname.c_str());
 		time_t t = time(NULL);
 		LOG(debug::INFO_LEVEL, debug::LOG_OTHER, _("%s log started on %s"), PACKAGE_STRING, ctime(&t));
 		std::string trace_fname = RigHomeDir;
 		trace_fname.append("trace.txt");
-		rotate_log(trace_fname);
+		backup_files(trace_fname);
 
 	}
 	catch (const char* error) {
