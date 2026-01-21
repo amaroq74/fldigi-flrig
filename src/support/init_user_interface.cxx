@@ -2558,25 +2558,34 @@ trace(1, "selrig->initialize()");
 	if (!testmode && xcvr_name != rig_null.name_ && (progStatus.xcvr_serial_port != "xml_client")) {
 		trace(1, "selrig->check()");
 		if (!selrig->check()) {
-			trace(1, "FAILED");
-			bypass_serial_thread_loop = true;
+std::cout << "check 1" << std::endl;
+			MilliSleep(500);
+			if (!selrig->check()) {
+std::cout << "check 2" << std::endl;
+				MilliSleep(1000);
+				if (!selrig->check()) {
+std::cout << "check 3 failed" << std::endl;
+					trace(1, "FAILED");
+					bypass_serial_thread_loop = true;
 
-			xcvr_online = false;
-			adjust_control_positions();
-			grpInitializing->hide();
-			main_group->show();
-			mainwindow->redraw();
+					xcvr_online = false;
+					adjust_control_positions();
+					grpInitializing->hide();
+					main_group->show();
+					mainwindow->redraw();
 
-			box_xcvr_connect->color(FL_BACKGROUND2_COLOR);
-			box_xcvr_connect->redraw();
-			fl_alert2(_("\
-Transceiver not responding!\n\n\
-Check serial (COM) port connection\n\
-Open menu Config/Setup/Transceiver\n\
-Press 'Update' button, reselect port\n\
-Check that Baud matches transceiver baud\n\n\
-Press 'Init' button."));
-			return;
+					box_xcvr_connect->color(FL_BACKGROUND2_COLOR);
+					box_xcvr_connect->redraw();
+					fl_alert2(_("\
+		Transceiver not responding!\n\n\
+		Check serial (COM) port connection\n\
+		Open menu Config/Setup/Transceiver\n\
+		Press 'Update' button, reselect port\n\
+		Check that Baud matches transceiver baud\n\n\
+		Press 'Init' button."));
+					return;
+				}
+			}
 		}
 	}
 

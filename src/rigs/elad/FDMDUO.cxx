@@ -206,6 +206,20 @@ RIG_FDMDUO::RIG_FDMDUO() {
 	powerScale = 1000;
 }
 
+bool RIG_FDMDUO::check ()
+{
+	cmd = "FA;";
+	int ret = 0;
+	for (int n = 0; n < 10; n++) {
+		ret = wait_char(';', 14, 100, "get vfo A", ASC);
+		if (ret >= 14) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
 static int ret = 0;
 
 const char * RIG_FDMDUO::get_bwname_(int n, int md) 
