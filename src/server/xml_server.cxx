@@ -3545,6 +3545,21 @@ public:
 
 } rig_set_verify_cwio_send(&rig_server);
 
+class rig_cwio_key : public XmlRpcServerMethod {
+public:
+	rig_cwio_key(XmlRpcServer* s) : XmlRpcServerMethod("rig.cwio_key", s) {}
+
+		void execute(XmlRpcValue& params, XmlRpcValue& result) { 
+		Fl::awake(connection_ON);
+
+		int key = int(params[0]);
+		cwio_key(key);
+	}
+
+	std::string help() { return std::string("sets cwio keyline on (1) or off (0)"); }
+
+} rig_cwio_key(&rig_server);
+
 //------------------------------------------------------------------------------
 
 class rig_get_agc : public XmlRpcServerMethod {
@@ -4406,6 +4421,7 @@ struct MLIST {
 	{ "rig.cwio_set_wpm",         "n:i", "set cwio WPM" },
 	{ "rig.cwio_text",            "i:s", "send text via cwio interface" },
 	{ "rig.cwio_send",            "n:i", "cwio transmit 1/0 (on/off)"},
+	{ "rig.cwio_key",             "n:i", "cwio key 1/0 (dwn/up)"},
 
 	{ "rig.fskio_text",           "i:s", "send text via fskio interface" },
 	{ "rig.get_fsk_stopbits",     "i:n", "read FSK stop bits" },

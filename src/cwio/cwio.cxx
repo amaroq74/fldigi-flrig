@@ -660,6 +660,13 @@ void send_text(bool state)
 		cwio_process = NONE;
 	}
 }
+ 
+void key_state(bool key)
+{
+	if (!cwio_thread_running) return;
+
+	cwio_key(key);
+}
 
 void cwio_new_text(std::string txt)
 {
