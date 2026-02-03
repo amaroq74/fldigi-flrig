@@ -108,19 +108,12 @@ void set_gpio_ptt(bool ptt)
 }
 
 #endif //USE_LIBGPIOD
+
 static int ptt_is_set = 0;
 
 void rigPTT(bool on)
 {
 	ptt_is_set = on;
-
-	if (progStatus.xmlrpc_rig) {
-		xmlrpc_ptt(on);
-		return;
-	}
-
-	if (!on && progStatus.split && !selrig->can_split())
-		fake_split(on);
 
 	std::string smode = "";
 	try {
@@ -128,6 +121,13 @@ void rigPTT(bool on)
 	} catch (const std::exception& e) {
 		std::cout << e.what() << '\n';
 	}
+
+	if (progStatus.xmlrpc_rig)
+		xmlrpc_ptt(on);
+
+	if (!on && progStatus.split && !selrig->can_split())
+		fake_split(on);
+
 	if ((smode.find("CW") != std::string::npos) && progStatus.disable_CW_ptt)
 		return;
 

@@ -611,18 +611,18 @@ void update_UI_TUNER(void *)
 	btn_tune_on_off->redraw();
 }
 
-void read_tuner()
-{
-	if (!selrig->has_tune_control) return;
+//void read_tuner()
+//{
+//	if (!selrig->has_tune_control) return;
 
-	tunerval = selrig->get_tune();
-	if (tunerval != btn_tune_on_off->value()) {
-		std::stringstream s;
-		s << "tuner state: " << tunerval;
-		trace(1, s.str().c_str());
-		Fl::awake(update_UI_TUNER);
-	}
-}
+//	tunerval = selrig->get_tune();
+//	if (tunerval != btn_tune_on_off->value()) {
+//		std::stringstream s;
+//		s << "tuner state: " << tunerval;
+//		trace(1, s.str().c_str());
+//		Fl::awake(update_UI_TUNER);
+//	}
+//}
 
 // read power out
 void read_power_out()
@@ -1683,7 +1683,7 @@ POLL_PAIR RX_poll_group_2[] = {
 
 POLL_PAIR RX_poll_group_3[] = {
 	{&progStatus.poll_mode, read_voltmeter, "voltage"},
-	{&progStatus.poll_tuner, read_tuner, "tuner"},
+//	{&progStatus.poll_tuner, read_tuner, "tuner"},
 	{&progStatus.poll_volume, read_volume, "volume"},
 	{&progStatus.poll_auto_notch, read_auto_notch, "auto notch"},
 	{&progStatus.poll_notch, read_notch, "notch"},
@@ -1746,6 +1746,19 @@ void read_menus()
 	menu1 = menu2 = 1;
 }
 
+int read_tune()
+{
+	tunerval = selrig->get_tune();
+	if (tunerval != btn_tune_on_off->value()) {
+		std::stringstream s;
+		s << "tuner state: " << tunerval;
+		trace(1, s.str().c_str());
+		Fl::awake(update_UI_TUNER);
+	}
+	if (tunerval == 2) return 1;
+	return 0;
+}
+
 void * serial_thread_loop(void *d)
 {
 	POLL_PAIR *rx_poll_group_1 = &RX_poll_group_1[0];
@@ -1775,7 +1788,7 @@ void * serial_thread_loop(void *d)
 			check_ptt();
 		}
 
-		if (PTT || selrig->get_tune() ||
+		if (PTT || read_tune() ||
 			cwio_process == SEND ||
 			cwio_process == CALIBRATE ||
 			cwio_process == KEYDOWN ) {

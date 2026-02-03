@@ -273,8 +273,9 @@ int RIG_ICOM::get_tune()
 		size_t p = replystr.rfind(resp);
 		if (p != std::string::npos)
 			val = replystr[p + 6];
+		tune_ = val;
 	}
-	return (tune_ = val);
+	return tune_;
 }
 
 std::string RIG_ICOM::hexstr(std::string s)

@@ -2609,5 +2609,6 @@ void RIG_IC7300::set_band_selection(int v)
 	seth();
 }
 
+
 #undef NUM_FILTERS
 #undef NUM_MODES
