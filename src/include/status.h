@@ -152,7 +152,7 @@ struct status {
 	int		poll_meters;
 	int		poll_ops;
 	int		poll_compression;
-	int		poll_tuner;
+	int		poll_voltage;
 	int		poll_ptt;
 	int		poll_break_in;
 	int		poll_all;

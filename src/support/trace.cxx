@@ -414,7 +414,7 @@ void tci_trace(int n, ...) // all args of type const char *
 	write_tracetext();
 }
 
-bool activate_lock_trace = false;
+bool activate_lock_trace = true;//false;
 
 void lock_trace(int n, ...) // all args of type const char *
 {

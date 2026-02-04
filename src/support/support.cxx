@@ -1682,24 +1682,23 @@ POLL_PAIR RX_poll_group_2[] = {
 };
 
 POLL_PAIR RX_poll_group_3[] = {
-	{&progStatus.poll_mode, read_voltmeter, "voltage"},
-//	{&progStatus.poll_tuner, read_tuner, "tuner"},
 	{&progStatus.poll_volume, read_volume, "volume"},
-	{&progStatus.poll_auto_notch, read_auto_notch, "auto notch"},
-	{&progStatus.poll_notch, read_notch, "notch"},
-	{&progStatus.poll_ifshift, read_ifshift, "if shift"},
-	{&progStatus.poll_pbt, read_pbt, "pass band tunning"},
+	{&progStatus.poll_micgain, read_mic_gain, "mic gain"},
+	{&progStatus.poll_rfgain, read_rfgain, "rfgain"},
 	{&progStatus.poll_power_control, read_power_control, "power"},
+	{&progStatus.poll_ifshift, read_ifshift, "if shift"},
+	{&progStatus.poll_notch, read_notch, "notch"},
+	{&progStatus.poll_auto_notch, read_auto_notch, "auto notch"},
+	{&progStatus.poll_voltage, read_voltmeter, "voltage"},
 	{&progStatus.poll_pre_att, read_preamp, "preamp"},
 	{&progStatus.poll_pre_att, read_att, "atten"},
-	{&progStatus.poll_micgain, read_mic_gain, "mic gain"},
 	{&progStatus.poll_squelch, read_squelch, "squelch"},
-	{&progStatus.poll_rfgain, read_rfgain, "rfgain"},
 	{&progStatus.poll_split, read_split, "split"},
-	{&progStatus.poll_nr, read_nr, "noise reduction"},
-	{&progStatus.poll_noise, read_noise, "noise"},
-	{&progStatus.poll_compression, read_compression, "compression"},
 	{&progStatus.poll_break_in, check_break_in, "break-in"},
+	{&progStatus.poll_noise, read_noise, "noise"},
+	{&progStatus.poll_nr, read_nr, "noise reduction"},
+	{&progStatus.poll_compression, read_compression, "compression"},
+	{&progStatus.poll_pbt, read_pbt, "pass band tunning"},
 	{NULL, NULL}
 };
 
@@ -1709,7 +1708,7 @@ POLL_PAIR TX_poll_pairs[] = {
 	{&progStatus.poll_swr, read_swr, "swr"},
 	{&progStatus.poll_alc, read_alc, "alc"},
 	{&progStatus.poll_alc, read_idd, "idd"},
-	{&progStatus.poll_mode, read_voltmeter, "voltage"},
+	{&progStatus.poll_voltage, read_voltmeter, "voltage"},
 	{&progStatus.poll_split, read_split, "split"},
 	{NULL, NULL, ""}
 };

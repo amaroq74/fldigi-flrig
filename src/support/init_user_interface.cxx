@@ -1185,8 +1185,8 @@ void TRACED(init_Generic_Tabs)
 		poll_notch->deactivate(); 
 		poll_notch->value( progStatus.poll_notch = 0 ); }
 	if (!selrig->has_tune_control) { 
-		poll_tuner->deactivate();
-		poll_tuner->value( progStatus.poll_tuner = 0 ); }
+		poll_voltage->deactivate();
+		poll_voltage->value( progStatus.poll_voltage = 0 ); }
 	if (!selrig->has_cw_break_in) { 
 		poll_break_in->deactivate(); 
 		poll_break_in->value( progStatus.poll_break_in = 0 ); }
@@ -2203,8 +2203,8 @@ void TRACED(init_auto_notch)
 			btnAutoNotch->label("AGC");
 			btnAutoNotch->tooltip("AGC on/off");
 		} else if (xcvr_name == rig_FT1000MP.name_) {
-			btnAutoNotch->label("Tuner");
-			btnAutoNotch->tooltip("Tuner on/off");
+			btnAutoNotch->label("Notch");
+			btnAutoNotch->tooltip("Notch on/off");
 		} else if (xcvr_name == rig_FT891.name_) {
 			btnAutoNotch->label("DNF");
 			btnAutoNotch->tooltip("DSP Auto notch filter on/off");

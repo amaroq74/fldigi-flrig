@@ -169,7 +169,7 @@ status progStatus = {
 	1,			// poll_meters;
 	1,			// poll_ops;
 	1,			// poll_compression;
-	1,			// poll_tuner;
+	1,			// poll_voltage;
 	1,			// poll_ptt;
 	1,			// poll_break_in;
 	1,			// int	poll_all;
@@ -1139,7 +1139,7 @@ void status::saveLastState()
 	spref.set("poll_noise", poll_noise);
 	spref.set("poll_nr", poll_nr);
 	spref.set("poll_compression", poll_compression);
-	spref.set("poll_tuner", poll_tuner);
+	spref.set("poll_voltage", poll_voltage);
 	spref.set("poll_ptt", poll_ptt);
 	spref.set("poll_break_in", poll_break_in);
 	spref.set("poll_all", poll_all);
@@ -1843,7 +1843,7 @@ bool status::loadXcvrState(std::string xcvr)
 		spref.get("poll_noise", poll_noise, poll_noise);
 		spref.get("poll_nr", poll_nr, poll_nr);
 		spref.get("poll_compression", poll_compression, poll_compression);
-		spref.get("poll_tuner", poll_tuner, poll_tuner);
+		spref.get("poll_voltage", poll_voltage, poll_voltage);
 		spref.get("poll_ptt", poll_ptt, poll_ptt);
 		spref.get("poll_break_in", poll_break_in, poll_break_in);
 		spref.get("poll_all", poll_all, poll_all);

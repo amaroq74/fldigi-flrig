@@ -127,7 +127,7 @@ Fl_Group *tabPOLLING = (Fl_Group *)0;
 	Fl_Check_Button *poll_noise = (Fl_Check_Button *)0;
 	Fl_Check_Button *poll_nr = (Fl_Check_Button *)0;
 	Fl_Check_Button *poll_compression = (Fl_Check_Button *)0;
-	Fl_Check_Button *poll_tuner = (Fl_Check_Button *)0;
+	Fl_Check_Button *poll_voltage = (Fl_Check_Button *)0;
 	Fl_Check_Button *poll_ptt = (Fl_Check_Button *)0;
 	Fl_Check_Button *poll_break_in = (Fl_Check_Button *)0;
 	Fl_Button *btnClearAddControls = (Fl_Button *)0;
@@ -743,8 +743,8 @@ static void cb_poll_compression(Fl_Check_Button* o, void *) {
 	progStatus.poll_compression = o->value();
 }
 
-static void cb_poll_tuner(Fl_Check_Button* o, void *) {
-	progStatus.poll_tuner = o->value();
+static void cb_poll_voltage(Fl_Check_Button* o, void *) {
+	progStatus.poll_voltage = o->value();
 }
 
 static void cb_poll_meters(Fl_Check_Button* o, void*) {
@@ -804,7 +804,7 @@ static void cb_btnSetAdd(Fl_Button*, void*) {
 	poll_noise->value(progStatus.poll_all);
 	poll_nr->value(progStatus.poll_all);
 	poll_compression->value(progStatus.poll_all);
-	poll_tuner->value(progStatus.poll_all);
+	poll_voltage->value(progStatus.poll_all);
 	poll_ptt->value(progStatus.poll_all);
 	poll_break_in->value(progStatus.poll_all);
 
@@ -822,7 +822,7 @@ static void cb_btnSetAdd(Fl_Button*, void*) {
 	progStatus.poll_noise =
 	progStatus.poll_nr =
 	progStatus.poll_compression =
-	progStatus.poll_tuner =
+	progStatus.poll_voltage =
 	progStatus.poll_ptt =
 	progStatus.poll_break_in =
 		progStatus.poll_all;
@@ -1944,11 +1944,11 @@ Fl_Group *createPOLLING(int X, int Y, int W, int H, const char *label)
 		poll_auto_notch->align(Fl_Align(FL_ALIGN_RIGHT));
 		poll_auto_notch->value(progStatus.poll_auto_notch);
 
-		poll_tuner = new Fl_Check_Button(X + 280, Y + 140, 30, 20, _("Tuner"));
-		poll_tuner->tooltip(_("Auto Tuner"));
-		poll_tuner->callback((Fl_Callback*)cb_poll_tuner);
-		poll_tuner->align(Fl_Align(FL_ALIGN_RIGHT));
-		poll_tuner->value(progStatus.poll_tuner);
+		poll_voltage = new Fl_Check_Button(X + 280, Y + 140, 30, 20, _("Voltage"));
+		poll_voltage->tooltip(_("Voltage"));
+		poll_voltage->callback((Fl_Callback*)cb_poll_voltage);
+		poll_voltage->align(Fl_Align(FL_ALIGN_RIGHT));
+		poll_voltage->value(progStatus.poll_voltage);
 
 		poll_pre_att = new Fl_Check_Button(X + 10, Y + 165, 30, 20, _("Pre/Att"));
 		poll_pre_att->tooltip(_("Preamp / Attenuator"));
