@@ -168,6 +168,7 @@ Fl_Group *tabTRACE = (Fl_Group *)0;
 	Fl_Check_Button *btn_debugtrace = (Fl_Check_Button *)0;
 	Fl_Check_Button *btn_rpctrace = (Fl_Check_Button *)0;
 	Fl_Check_Button *btn_serialtrace = (Fl_Check_Button *)0;
+	Fl_Check_Button *btn_lock_trace = (Fl_Check_Button *)0;
 	Fl_Check_Button *btn_start_stop_trace = (Fl_Check_Button *)0;
 	Fl_ComboBox *selectlevel = (Fl_ComboBox *)0;
 	Fl_Button *btn_viewtrace = (Fl_Button *)0;
@@ -364,6 +365,10 @@ static void cb_btn_rpctrace(Fl_Check_Button *, void *) {
 
 static void cb_btn_serialtrace(Fl_Check_Button *, void *) {
 	progStatus.serialtrace = btn_serialtrace->value();
+}
+
+static void cb_btn_lock_trace(Fl_Check_Button *, void *) {
+	progStatus.locktrace = btn_lock_trace->value();
 }
 
 static void cb_btn_start_stop_trace(Fl_Check_Button *, void *) {
@@ -1409,6 +1414,11 @@ Fl_Group *createTRACE(int X, int Y, int W, int H, const char *label)
 	btn_settrace->value(progStatus.settrace);
 	btn_settrace->callback((Fl_Callback*)cb_btn_settrace);
 	btn_settrace->tooltip(_("Enable trace of rig set methods"));
+
+	btn_lock_trace = new Fl_Check_Button(X + 10, Y + 170, 80, 20, _("Trace guard lock"));
+	btn_lock_trace->value(progStatus.settrace);
+	btn_lock_trace->callback((Fl_Callback*)cb_btn_lock_trace);
+	btn_lock_trace->tooltip(_("Enable trace of pthread locking/unlocking"));
 
 	btn_xmltrace = new Fl_Check_Button(X + 240, Y + 20, 80, 20, _("Trace xml_server code"));
 	btn_xmltrace->value(progStatus.xmltrace);

@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "threads.h"
+#include "util.h"
 #include "support.h"
 
 /// This ensures that a mutex is always unlocked when leaving a function or block.
@@ -36,47 +37,39 @@ extern pthread_mutex_t debug_mutex;
 extern pthread_mutex_t mutex_rcv_socket;
 extern pthread_mutex_t mutex_trace;
 
-// Change to 1 to observe guard lock/unlock processing on stdout
-//#define DEBUG_GUARD_LOCK 0
-//guard_lock::guard_lock(pthread_mutex_t* m, int h) : mutex(m), how(h) {
-//char szlock[100];
-//	pthread_mutex_lock(mutex);
-//	snprintf(szlock, sizeof(szlock), "lock %s : %d", name(mutex), how);
-//	how = h
-//	if (how >= 100)
-//		trace(1, szlock);
-//	if (how != 0 && DEBUG_GUARD_LOCK)
-//		printf("%s", szlock);
-//}
-
-//guard_lock::~guard_lock(void) {
-//char szunlock[100];
-//	snprintf(szunlock, sizeof(szunlock), "unlock %s : %d\n", name(mutex), how);
-//	if (how >= 100)
-//		trace(1, szunlock);
-//	if (how != 0 && DEBUG_GUARD_LOCK)
-//		printf("%s", szunlock);
-//	pthread_mutex_unlock(mutex);
-//}
-
 guard_lock::guard_lock(pthread_mutex_t* m, std::string h) : mutex(m) {
-	pthread_mutex_lock(mutex);
-	if (!h.empty()) {
-		how = h;
-		std::string szlock;
-		szlock.assign("lock ").append(name(mutex)).append(" : ").append(how);
-		start_time = zmsec();
-//		trace(1, szlock.c_str());
-		lock_trace(1, szlock.c_str());
+
+	how.clear();
+	start_time = zmsec();
+	for (int i = 0; i < 10; i++) {
+		if (pthread_mutex_trylock(mutex) == 0) {
+			std::string szlock = name(mutex);
+			szlock.append(" try lock ");
+			if (!h.empty()) {
+				how = h;
+				szlock.append(", ").append(how);
+			}
+			lock_trace(1, szlock.c_str());
+			return;
+		}
+		MilliSleep(50);
 	}
+
+	std::string szlock = name(mutex);
+	szlock.append(" lock FAILED ").append(name(mutex));
+	if (!h.empty())
+		szlock.append(how);
+	progStatus.locktrace = true;
+	lock_trace(1, szlock.c_str());
+
 }
 
 guard_lock::~guard_lock(void) {
-	if (!how.empty()) {
-		char szlock[200];
-		snprintf(szlock, sizeof(szlock), "%s, %s locked for %lu msec", how.c_str(), name(mutex), (long)(zmsec() - start_time));
-		lock_trace(1, szlock);
-	}
+
+	char szlock[200];
+	snprintf(szlock, sizeof(szlock), "%s locked for %lu msec", name(mutex), (long)(zmsec() - start_time));
+	lock_trace(1, szlock);
+
 	pthread_mutex_unlock(mutex);
 }
 

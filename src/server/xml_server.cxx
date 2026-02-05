@@ -324,7 +324,7 @@ public:
 		Fl::awake(connection_ON);
 
 
-		guard_lock serial(&mutex_serial, "xml 01");
+		guard_lock serial(&mutex_serial, "xml get split");
 
 		int split_state = selrig->get_split();
 		progStatus.split = split_state;
@@ -354,7 +354,8 @@ public:
 		static char szfreq[20];
 		unsigned long long freq;
 
-		guard_lock serial_lock(&mutex_serial, "xml rig_get_vfo");
+// guard lock not needed, serial port not accessed
+//		guard_lock serial_lock(&mutex_serial, "xml rig_get_vfo");
 
 		if (selrig->ICOMmainsub) {
 			if (progStatus.split && PTT) freq = vfoB.freq;
@@ -392,7 +393,7 @@ public:
 		}
 //		int freq;
 
-		guard_lock serial(&mutex_serial, "xml 02");
+		guard_lock serial(&mutex_serial, "xml get vfoA");
 
 		vfoA.freq = selrig->get_vfoA();
 		Fl::awake(setFreqDispA);
@@ -423,7 +424,7 @@ public:
 			result = "14070000";
 			return;
 		}
-		guard_lock serial(&mutex_serial, "xml 03");
+		guard_lock serial(&mutex_serial, "xml get vfoB");
 
 		vfoB.freq = selrig->get_vfoB();
 		Fl::awake(setFreqDispB);
@@ -973,7 +974,8 @@ public:
 		int mode;
 
 		try {
-			guard_lock serial_lock(&mutex_serial, "xml rig_get_mode");
+// guard lock not needed, serial port not accessed
+//			guard_lock serial_lock(&mutex_serial, "xml rig_get_mode");
 
 			mode = vfo->imode;
 
@@ -1159,7 +1161,8 @@ public:
 		int mode = (selrig->inuse == onB) ? vfoB.imode : vfoA.imode;
 
 		try {
-			guard_lock serial_lock(&mutex_serial, "xml rig_get_bw");
+// guard lock not need, serial port not accessed
+//			guard_lock serial_lock(&mutex_serial, "xml rig_get_bw");
 
 			if (!selrig->has_bandwidth_control)
 				return;
@@ -1297,14 +1300,12 @@ public:
 		void execute(XmlRpcValue& params, XmlRpcValue& result) { 
 		Fl::awake(connection_ON);
 
-		if (!xcvr_online || disable_xmlrpc->value() || !selrig->has_smeter)
+		if ( !xcvr_online           || disable_xmlrpc->value() 
+			 || !selrig->has_smeter || btnPTT->value() )
 			result = "0";
 		else {
-			guard_lock serial_lock(&mutex_serial, "xml 04");
-			int val = selrig->get_smeter();
-
 			char szMeter[20];
-			snprintf(szMeter, sizeof(szMeter), "%d", val);
+			snprintf(szMeter, sizeof(szMeter), "%d", int(smtrval));
 			std::string result_string = szMeter;
 			result = result_string;
 		}
@@ -1321,15 +1322,16 @@ public:
 		void execute(XmlRpcValue& params, XmlRpcValue& result) { 
 		Fl::awake(connection_ON);
 
-		if (!xcvr_online || disable_xmlrpc->value() || !selrig->has_smeter)
+		if ( !xcvr_online           || disable_xmlrpc->value() 
+			 || !selrig->has_smeter || btnPTT->value() )
 			result = "0";
 		else {
-			guard_lock serial_lock(&mutex_serial, "xml 05");
-			int val = selrig->get_smeter();
+			int val = int(smtrval);
+			char szMeter[20];
+
 			if (val > 50) val = round(-73.0 + (val - 50.0) * 6.0 / 5.0);
 			else          val = round(-127.0 + val * 54.0 / 50.0);
 
-			char szMeter[20];
 			snprintf(szMeter, sizeof(szMeter), "%d", val);
 			std::string result_string = szMeter;
 			result = result_string;
@@ -1347,12 +1349,11 @@ public:
 		void execute(XmlRpcValue& params, XmlRpcValue& result) { 
 		Fl::awake(connection_ON);
 
-		if (!xcvr_online || disable_xmlrpc->value() || !selrig->has_smeter)
+		if ( !xcvr_online           || disable_xmlrpc->value() 
+			 || !selrig->has_smeter || btnPTT->value() )
 			result = "0";
 		else {
-			guard_lock serial_lock(&mutex_serial, "xml 06");
-			int val = selrig->get_smeter();
-
+			int val = int(smtrval);
 			char szMeter[20];
 			if (val > 50) {
 				val = round((val - 50.0) * 6.0 / 5.0);
@@ -1380,7 +1381,7 @@ public:
 		if (!xcvr_online || disable_xmlrpc->value() || !selrig->has_power_out)
 			result = (int)(0);
 		else {
-			guard_lock serial_lock(&mutex_serial, "xml 07");
+			guard_lock serial_lock(&mutex_serial, "xml pwr scale");
 			result = (int)(selrig->power_scale());
 		}
 	}
@@ -1411,7 +1412,7 @@ public:
 		if (!xcvr_online || disable_xmlrpc->value() || !selrig->has_power_out)
 			result = "0";
 		else {
-			guard_lock serial_lock(&mutex_serial, "xml 08");
+			guard_lock serial_lock(&mutex_serial, "xml pwr meter");
 			int val = selrig->get_power_out();
 			char szmeter[20];
 			snprintf(szmeter, sizeof(szmeter), "%d", val);
@@ -1435,7 +1436,7 @@ public:
 		if (!xcvr_online || disable_xmlrpc->value() || !selrig->has_swr_control)
 			result = "0";
 		else {
-			guard_lock serial_lock(&mutex_serial, "xml 09");
+			guard_lock serial_lock(&mutex_serial, "xml swr meter");
 			int val = selrig->get_swr();
 			char szmeter[20];
 			snprintf(szmeter, sizeof(szmeter), "%d", val);
@@ -1471,7 +1472,7 @@ public:
 			result = "0";
 		else {
 			PAIRS swr_pairs( define_PAIR(swr_tbl) );
-			guard_lock serial_lock(&mutex_serial, "xml 09");
+			guard_lock serial_lock(&mutex_serial, "xml swr");
 			int val = selrig->get_swr();
 			double swr = swr_pairs.value(val);
 			char szmeter[20];
@@ -1524,7 +1525,7 @@ public:
 		}
 		int power_level = (int)(params[0]);
 
-		guard_lock lock(&mutex_serial, "xml 10");
+		guard_lock lock(&mutex_serial, "xml set power");
 		selrig->set_power_control(power_level);
 		progStatus.power_level = power_level;
 		Fl::awake(update_power_control, (void*)0);
@@ -1547,7 +1548,7 @@ public:
 		}
 		int power_level = (int)(params[0]);
 
-		guard_lock lock(&mutex_serial, "xml 11");
+		guard_lock lock(&mutex_serial, "xml set verify power");
 		selrig->set_power_control(power_level);
 
 		progStatus.power_level = selrig->get_power_control();
@@ -1589,7 +1590,7 @@ public:
 
 		int power_change = (int)(params[0]);
 
-		guard_lock lock(&mutex_serial, "xml 12");
+		guard_lock lock(&mutex_serial, "xml mod pwr");
 		progStatus.power_level += power_change;
 		if (progStatus.power_level > max) progStatus.power_level = max;
 		if (progStatus.power_level < min) progStatus.power_level = min;
@@ -1616,7 +1617,7 @@ public:
 			result = 0;
 			return;
 		}
-		guard_lock serial_lock(&mutex_serial, "xml 13");
+		guard_lock serial_lock(&mutex_serial, "xml tune");
 		selrig->tune_rig(2);
 	}
 
@@ -1642,7 +1643,7 @@ public:
 			return;
 		}
 
-		guard_lock ser_lock (&mutex_serial, "xml 14");
+		guard_lock ser_lock (&mutex_serial, "xml set verify ptt");
 
 		PTT = int(params[0]);
 		xml_trace(1, (PTT ? "rig_set_verify_ptt ON" : "rig_set_verify_ptt OFF"));
@@ -1680,7 +1681,7 @@ public:
 			return;
 		}
 
-		guard_lock ser_lock (&mutex_serial, "xml 15");
+		guard_lock ser_lock (&mutex_serial, "xml set ptt");
 
 		PTT = int(params[0]);
 		xml_trace(1, (PTT ? "rig_ptt ON" : "rig_ptt OFF"));
@@ -1716,7 +1717,7 @@ public:
 			return;
 		}
 
-		guard_lock ser_lock (&mutex_serial, "xml 16");
+		guard_lock ser_lock (&mutex_serial, "xml set ptt fast");
 
 		PTT = int(params[0]);
 		xml_trace(1, (PTT ? "rig_ptt ON" : "rig_ptt OFF"));
@@ -1971,7 +1972,7 @@ public:
 		}
 		unsigned long long freq = static_cast<unsigned long long>((double)params[0]);
 
-		guard_lock serial(&mutex_serial, "xml 17");
+		guard_lock serial(&mutex_serial, "xml set vfoA");
 
 		if (!selrig->can_change_alt_vfo  && (selrig->inuse == onB)) {
 			selrig->selectA();
@@ -2003,7 +2004,7 @@ public:
 		}
 		unsigned long long freq = static_cast<unsigned long long>(double(params[0]));
 
-		guard_lock serial(&mutex_serial, "xml 18");
+		guard_lock serial(&mutex_serial, "xml set verify vfoA");
 
 		if (!selrig->can_change_alt_vfo  && (selrig->inuse == onB)) {
 			selrig->selectA();
@@ -2034,7 +2035,7 @@ public:
 		}
 		unsigned long long freq = static_cast<unsigned long long>(double(params[0]));
 
-		guard_lock serial(&mutex_serial, "xml 19");
+		guard_lock serial(&mutex_serial, "xml set vfoA fast");
 
 		if (!selrig->can_change_alt_vfo  && (selrig->inuse == onB)) {
 			selrig->selectA();
@@ -2065,7 +2066,7 @@ public:
 		}
 		signed long int freq = static_cast<signed long int>((double)params[0]);
 
-		guard_lock serial(&mutex_serial, "xml 20");
+		guard_lock serial(&mutex_serial, "xml mod vfoA");
 
 		if (!selrig->can_change_alt_vfo  && (selrig->inuse == onB)) {
 			selrig->selectA();
@@ -2101,7 +2102,7 @@ public:
 		}
 		unsigned long long freq = static_cast<unsigned long long>(double(params[0]));
 
-		guard_lock serial(&mutex_serial, "xml 21");
+		guard_lock serial(&mutex_serial, "xml set vfoB");
 
 		if (!selrig->can_change_alt_vfo  && (selrig->inuse == onA)) {
 			selrig->selectB();
@@ -2132,7 +2133,7 @@ public:
 		}
 		unsigned long long freq = static_cast<unsigned long long>(double(params[0]));
 
-		guard_lock serial(&mutex_serial, "xml 22");
+		guard_lock serial(&mutex_serial, "xml set verify vfoB");
 
 		if (!selrig->can_change_alt_vfo  && (selrig->inuse == onA)) {
 			selrig->selectB();
@@ -2163,7 +2164,7 @@ public:
 		}
 		unsigned long long freq = static_cast<unsigned long long>(double(params[0]));
 
-		guard_lock serial(&mutex_serial, "xml 23");
+		guard_lock serial(&mutex_serial, "xml set vfoB fast");
 
 		if (!selrig->can_change_alt_vfo  && (selrig->inuse == onA)) {
 			selrig->selectB();
@@ -2194,7 +2195,7 @@ public:
 		}
 		signed long int freq = static_cast<signed long int>((double)params[0]);
 
-		guard_lock serial(&mutex_serial, "xml 24");
+		guard_lock serial(&mutex_serial, "xml mod vfoB");
 
 		if (!selrig->can_change_alt_vfo  && (selrig->inuse == onA)) {
 			selrig->selectB();
@@ -2229,7 +2230,7 @@ public:
 			return;
 		}
 
-		guard_lock serial(&mutex_serial, "xml 25");
+		guard_lock serial(&mutex_serial, "xml vfoA2B");
 
 		vfoB.freq = vfoA.freq;
 		vfoB.imode = vfoA.imode;
@@ -2260,7 +2261,7 @@ public:
 			return;
 		}
 
-		guard_lock serial(&mutex_serial, "xml 26");
+		guard_lock serial(&mutex_serial, "xml freqA2B");
 
 		vfoB.freq = vfoA.freq;
 
@@ -2289,7 +2290,7 @@ public:
 			return;
 		}
 
-		guard_lock serial(&mutex_serial, "xml 27");
+		guard_lock serial(&mutex_serial, "xml modeA2B");
 
 		vfoB.imode = vfoA.imode;
 
@@ -2317,7 +2318,7 @@ public:
 		}
 		unsigned long long freq = static_cast<unsigned long long>(double(params[0]));
 
-		guard_lock serial(&mutex_serial, "xml 28");
+		guard_lock serial(&mutex_serial, "xml set vfo");
 		if (selrig->inuse == onB) {
 			selrig->set_vfoB(freq);
 			vfoB.freq = freq;
@@ -2346,7 +2347,7 @@ public:
 		}
 		unsigned long long freq = static_cast<unsigned long long>(double(params[0]));
 
-		guard_lock serial(&mutex_serial, "xml 29");
+		guard_lock serial(&mutex_serial, "xml set verify vfo");
 		if (selrig->inuse == onB) {
 			selrig->set_vfoB(freq);
 			vfoB.freq = selrig->get_vfoB();
@@ -2376,7 +2377,7 @@ public:
 		}
 		unsigned long long freq = static_cast<unsigned long long>(double(params[0]));
 
-		guard_lock serial(&mutex_serial, "xml 30");
+		guard_lock serial(&mutex_serial, "xml set frequency");
 		if (selrig->inuse == onB) {
 			selrig->set_vfoB(freq);
 			vfoB.freq = freq;
@@ -2405,7 +2406,7 @@ public:
 		}
 		unsigned long long freq = static_cast<unsigned long long>(double(params[0]));
 
-		guard_lock serial(&mutex_serial, "xml 31");
+		guard_lock serial(&mutex_serial, "xml rig set frequency");
 		if (selrig->inuse == onB) {
 			selrig->set_vfoB(freq);
 			vfoB.freq = freq;
@@ -2435,7 +2436,7 @@ public:
 		}
 		unsigned long long freq = static_cast<unsigned long long>(double(params[0]));
 
-		guard_lock serial(&mutex_serial, "xml 32");
+		guard_lock serial(&mutex_serial, "xml set verify frequency");
 		if (selrig->inuse == onB) {
 			selrig->set_vfoB(freq);
 			vfoB.freq = selrig->get_vfoB();
@@ -2475,7 +2476,7 @@ public:
 		try {
 			for (size_t imode = 0; imode < selrig->modes_.size(); imode++) {
 				if (numode == selrig->modes_.at(imode))  {
-					guard_lock serlock( &mutex_serial );
+					guard_lock serlock( &mutex_serial, "xml set mode");
 					if (selrig->inuse == onB) {
 						vfo->imode = vfoB.imode = imode;
 						selrig->set_modeB(imode);
@@ -2521,7 +2522,7 @@ public:
 		try {
 			for (size_t imode = 0; imode < selrig->modes_.size(); imode++) {
 				if (numode == selrig->modes_.at(imode))  {
-					guard_lock serlock( &mutex_serial );
+					guard_lock serlock( &mutex_serial, "xml set verify mode" );
 					if (selrig->inuse == onB) {
 						vfo->imode = vfoB.imode = imode;
 						selrig->set_modeB(imode);
@@ -2574,7 +2575,7 @@ public:
 		try {
 			for (size_t imode = 0; imode < selrig->modes_.size(); imode++) {
 				if (numode == selrig->modes_.at(imode))  {
-					guard_lock serlock( &mutex_serial );
+					guard_lock serlock( &mutex_serial, "xml set modeA" );
 					vfo->imode = vfoA.imode = imode;
 					selrig->set_modeA(imode);
 					vfo->iBW = vfoA.iBW = selrig->def_bandwidth(imode);
@@ -2614,7 +2615,7 @@ public:
 		try {
 			for (size_t imode = 0; imode < selrig->modes_.size(); imode++) {
 				if (numode == selrig->modes_.at(imode))  {
-					guard_lock serlock( &mutex_serial );
+					guard_lock serlock( &mutex_serial, "xml set verify modeA" );
 						vfo->imode = vfoA.imode = imode;
 					selrig->set_modeA(imode);
 					vfo->iBW = vfoA.iBW = selrig->def_bandwidth(imode);
@@ -2657,7 +2658,7 @@ public:
 		try {
 			for (size_t imode = 0; imode < selrig->modes_.size(); imode++) {
 				if (numode == selrig->modes_.at(imode))  {
-					guard_lock serlock( &mutex_serial );
+					guard_lock serlock( &mutex_serial, "xml set modeB" );
 						vfo->imode = vfoB.imode = imode;
 					selrig->set_modeB(imode);
 					vfo->iBW = vfoB.iBW = selrig->def_bandwidth(imode);
@@ -2695,7 +2696,7 @@ public:
 		try {
 			for (size_t imode = 0; imode < selrig->modes_.size(); imode++) {
 				if (numode == selrig->modes_.at(imode))  {
-					guard_lock serlock( &mutex_serial );
+					guard_lock serlock( &mutex_serial, "xml set verify modeB" );
 						vfo->imode = vfoB.imode = imode;
 					selrig->set_modeB(imode);
 					vfo->iBW = vfoB.iBW = selrig->def_bandwidth(imode);
@@ -3346,7 +3347,7 @@ public:
 		std::string cmd = recv_hex(command);
 
 		{
-			guard_lock lock2(&mutex_serial, "xml 39");
+			guard_lock lock2(&mutex_serial, "xml cat string");
 
 			if (progStatus.use_tcpip) 
 				send_to_remote(cmd);
@@ -3522,7 +3523,7 @@ static void set_cwio_send_button(void *val)
 		btn_cwioSEND->value(1);
 	} else {
 		btn_cwioSEND->value(0);
-		guard_lock lck(&cwio_text_mutex);
+		guard_lock lck(&cwio_text_mutex, "xml cwio send button");
 //		cwio_text.clear();
 		cwio_clear_text();
 	}
@@ -3572,7 +3573,7 @@ public:
 		if (!xcvr_online || disable_xmlrpc->value() || !selrig->has_agc_control)
 			result = "0";
 		else {
-			guard_lock serial_lock(&mutex_serial);
+			guard_lock serial_lock(&mutex_serial, "xml get agc");
 			int val = selrig->get_agc();
 
 			char szagc[20];
@@ -3597,7 +3598,7 @@ public:
 		if (!xcvr_online || disable_xmlrpc->value() || !selrig->has_agc_control)
 			result = "0";
 		else {
-			guard_lock serial_lock(&mutex_serial);
+			guard_lock serial_lock(&mutex_serial, "xml incr agc");
 			selrig->incr_agc();
 
 			int val = selrig->get_agc();

@@ -496,6 +496,7 @@ struct status {
 	bool	xmltrace;
 	bool	rpctrace;
 	bool	serialtrace;
+	bool	locktrace;
 	bool	tcitrace;
 	bool	start_stop_trace;
 	int		rpc_level;

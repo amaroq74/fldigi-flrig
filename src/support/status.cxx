@@ -512,6 +512,7 @@ status progStatus = {
 	false,		// bool	xmltrace;
 	false,		// bool	rpctrace;
 	false,		// bool	serialtrace;
+	false,		// bool	locktrace;
 	false,		// bool tcitrace;
 	false,		// bool	start_stop_trace;
 	0,			// int	rpc_level;
@@ -953,7 +954,7 @@ void status::saveLastState()
 	mainH = mainwindow->h();
 
 #if FLRIG_FLTK_API_MINOR >3
-	int scrx = 0, scry = 0, scrw = 0, scrh = 0;
+//	int scrx = 0, scry = 0, scrw = 0, scrh = 0;
 	screen_number = mainwindow->screen_num();
 	screen_scale = Fl::screen_scale(screen_number) * 100;
 #endif
@@ -1516,6 +1517,7 @@ void status::saveLastState()
 	spref.set("xmltrace", xmltrace);
 	spref.set("rpctrace", rpctrace);
 	spref.set("serialtrace", serialtrace);
+	spref.set("locktrace", locktrace);
 	spref.set("startstoptrace", start_stop_trace);
 	spref.set("tcitrace", tcitrace);
 
@@ -2317,6 +2319,7 @@ bool status::loadXcvrState(std::string xcvr)
 		if (spref.get("debugtrace", i, debugtrace)) debugtrace = i;
 		if (spref.get("xmltrace", i, xmltrace)) xmltrace = i;
 		if (spref.get("serialtrace", i, serialtrace)) serialtrace = i;
+		if (spref.get("locktrace", i, locktrace)) locktrace = i;
 		if (spref.get("startstoptrace", i, start_stop_trace)) start_stop_trace = i;
 		if (spref.get("rpctrace", i, rpctrace)) rpctrace = i;
 		if (spref.get("tcitrace", i, tcitrace)) tcitrace = i;
@@ -2329,6 +2332,7 @@ bool status::loadXcvrState(std::string xcvr)
 		xmltrace = true;
 		rpctrace = true;
 		serialtrace = true;
+		locktrace = true;
 		gettrace = true;
 		tcitrace = true;
 #endif
@@ -2920,6 +2924,7 @@ void ss_trace(bool on)
 		progStatus.rigtrace =
 		progStatus.settrace =
 		progStatus.serialtrace =
+		progStatus.locktrace =
 		progStatus.gettrace = 
 		progStatus.tcitrace = true;
 	} else {
@@ -2928,6 +2933,7 @@ void ss_trace(bool on)
 		progStatus.settrace = ssettrace;
 		progStatus.gettrace = sgettrace;
 		progStatus.serialtrace = sstrace;
+		progStatus.locktrace = sstrace;
 		progStatus.tcitrace = stcitrace;
 	}
 }

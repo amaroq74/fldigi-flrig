@@ -414,10 +414,7 @@ void *fsk_loop(void *data)
 	FSK *fsk = (FSK *)data;
 	while (1) {
 		fsk->loop_xmt();
-		{
-			guard_lock tlock (&fsk_mutex);
-			if (fsk->fsk_loop_terminate) goto _exit;
-		}
+		if (fsk->fsk_loop_terminate) goto _exit;
 		MilliSleep(50);
 	}
 _exit:

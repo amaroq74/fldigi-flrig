@@ -62,7 +62,9 @@ Fl_Light_Button*	btn_pausetrace = (Fl_Light_Button*)0;
 
 std::string tracestring;
 
-bool stdout_trace = false;//true;
+bool stdout_trace = 
+//	true;
+	false;
 
 bool pausetrace = false;
 
@@ -73,9 +75,11 @@ static void cb_pausetrace(Fl_Light_Button *o, void *)
 
 static void cb_cleartrace(Fl_Button *, void *)
 {
-	guard_lock tt(&mutex_trace);
+//	guard_lock tt(&mutex_trace);
+	pthread_mutex_lock( &mutex_trace );
 	tracedisplay->buffer()->text("");
 	tracestring.clear();
+	pthread_mutex_unlock(&mutex_trace);
 }
 
 void make_trace_window() {
@@ -92,6 +96,7 @@ void make_trace_window() {
 	tracewindow->resizable(tracedisplay);
 }
 
+// system level does not need lock
 static void write_trace_file(std::string s)
 {
 	std::string trace_fname = RigHomeDir;
@@ -102,9 +107,10 @@ static void write_trace_file(std::string s)
 	tfile.close();
 }
 
+// fltk main loop ... needs lock
 static void update_tracetext(void *)
 {
-	guard_lock tt(&mutex_trace);
+	pthread_mutex_lock( &mutex_trace );
 
 	if (tracewindow->visible()) {
 		if (!pausetrace) {
@@ -113,17 +119,25 @@ static void update_tracetext(void *)
 			tracedisplay->insert(tracestring.c_str());
 		}
 	}
-    tracestring.clear();
+	tracestring.clear();
+
+	pthread_mutex_unlock ( &mutex_trace );
 }
 
-void write_tracetext()
+void write_tracetext(std::string s)
 {
+	if (s.rfind('\n') != s.length() - 1) s.append("\n"); 
 	if (stdout_trace) {
-		std::cout << tracestring;
-		if (tracestring.find('\n') == std::string::npos) std::cout << std::endl;
+		std::cout << s;
 		std::cout.flush();
 	}
+	write_trace_file( s);
+
+// send to main loop ... needs lock
+	pthread_mutex_lock( &mutex_trace );
+	tracestring.append(s);
 	Fl::awake(update_tracetext);
+	pthread_mutex_unlock( &mutex_trace );
 }
 
 void trace(int n, ...) // all args of type const char *
@@ -141,11 +155,7 @@ void trace(int n, ...) // all args of type const char *
 	va_end(vl);
 	s << "\n";
 
-	write_trace_file(s.str());
-
-	guard_lock tt(&mutex_trace);
-	tracestring.append(s.str());
-	write_tracetext();
+	write_tracetext(s.str());
 }
 
 #include "XmlRpc.h"
@@ -169,11 +179,7 @@ void xml_trace(int n, ...) // all args of type const char *
 	va_end(vl);
 	s << "\n";
 
-	write_trace_file(s.str());
-
-	guard_lock tt(&mutex_trace);
-	tracestring.append(s.str());
-	write_tracetext();
+	write_tracetext(s.str());
 }
 
 void rig_trace(int n, ...) // all args of type const char *
@@ -191,11 +197,7 @@ void rig_trace(int n, ...) // all args of type const char *
 	va_end(vl);
 	s << "\n";
 
-	write_trace_file(s.str());
-
-	guard_lock tt(&mutex_trace);
-	tracestring.append(s.str());
-	write_tracetext();
+	write_tracetext(s.str());
 }
 
 void set_trace(int n, ...) // all args of type const char *
@@ -213,11 +215,7 @@ void set_trace(int n, ...) // all args of type const char *
 	va_end(vl);
 	s << "\n";
 
-	write_trace_file(s.str());
-
-	guard_lock tt(&mutex_trace);
-	tracestring.append(s.str());
-	write_tracetext();
+	write_tracetext(s.str());
 }
 
 void get_trace(int n, ...) // all args of type const char *
@@ -235,11 +233,7 @@ void get_trace(int n, ...) // all args of type const char *
 	va_end(vl);
 	s << "\n";
 
-	write_trace_file(s.str());
-
-	guard_lock tt(&mutex_trace);
-	tracestring.append(s.str());
-	write_tracetext();
+	write_tracetext(s.str());
 }
 
 void rpc_trace(int n, ...) // all args of type const char *
@@ -297,15 +291,7 @@ void rpc_trace(int n, ...) // all args of type const char *
 
 	if (str[str.length()-1] != '\n') str += '\n';
 
-	if (!tracewindow) make_trace_window();
-	if (!progStatus.rpctrace) return;
-	if (!n) return;
-
-	write_trace_file(s.str());
-
-	guard_lock tt(&mutex_trace);
-	tracestring.append(s.str());
-	write_tracetext();
+	write_tracetext(str);
 }
 
 void ser_trace(int n, ...) // all args of type const char *
@@ -323,11 +309,7 @@ void ser_trace(int n, ...) // all args of type const char *
 	va_end(vl);
 	s << "\n";
 
-	write_trace_file(s.str());
-
-	guard_lock tt(&mutex_trace);
-	tracestring.append(s.str());
-	write_tracetext();
+	write_tracetext(s.str());
 }
 
 void deb_trace(int n, ...) // all args of type const char *
@@ -385,11 +367,7 @@ void deb_trace(int n, ...) // all args of type const char *
 
 	if (str[str.length()-1] != '\n') str += '\n';
 
-	write_trace_file(s.str());
-
-	guard_lock tt(&mutex_trace);
-	tracestring.append(s.str());
-	write_tracetext();
+	write_tracetext(str);
 }
 
 void tci_trace(int n, ...) // all args of type const char *
@@ -407,18 +385,15 @@ void tci_trace(int n, ...) // all args of type const char *
 	va_end(vl);
 	s << "\n";
 
-	write_trace_file(s.str());
-
-	guard_lock tt(&mutex_trace);
-	tracestring.append(s.str());
-	write_tracetext();
+	write_tracetext(s.str());
 }
 
-bool activate_lock_trace = true;//false;
+bool activate_lock_trace = true;
 
 void lock_trace(int n, ...) // all args of type const char *
 {
-	if (!n || !activate_lock_trace) return;
+	if (!n) return;
+	if (!progStatus.locktrace) return;
 	if (!tracewindow) make_trace_window();
 
 	std::stringstream s;
@@ -428,11 +403,6 @@ void lock_trace(int n, ...) // all args of type const char *
 	for (int i = 1; i < n; i++)
 		s << " " << va_arg(vl, const char *);
 	va_end(vl);
-	s << "\n";
 
-	write_trace_file(s.str());
-
-	guard_lock tt(&mutex_trace);
-	tracestring.append(s.str());
-	write_tracetext();
+	write_tracetext(s.str());
 }

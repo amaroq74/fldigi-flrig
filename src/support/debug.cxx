@@ -109,7 +109,7 @@ void debug::start(const char* filename)
 
 void debug::stop(void)
 {
-	guard_lock dlock(&debug_mutex);
+//	guard_lock dlock(&debug_mutex);
 	delete inst;
 	inst = 0;
 	btext = 0;
@@ -190,7 +190,7 @@ void debug::sync_text(void* arg)
 	if (!window) return;
 	if (!window->visible()) return;
 
-	guard_lock dlock(&debug_mutex);
+//	guard_lock dlock(&debug_mutex);
 	if (inst == 0 || btext == 0) return;
 
 	size_t p0 = 0, p1 = estr.find('\n');
