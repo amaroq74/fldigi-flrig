@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------
-// Copyright (C) 2014
+// Copyright (C) 2026
 //              David Freese, W1HKJ
 //
 // This file is part of flrig.
@@ -158,20 +158,6 @@ Fl_Button *btn2_init_ser_port = (Fl_Button *)0;
 Fl_Button *btnCloseCommConfig = (Fl_Button *)0;
 Fl_Button *btnOkSepSerial = (Fl_Button *)0;
 Fl_Button *btnOkAuxSerial = (Fl_Button *)0;
-
-Fl_Group *tabTRACE = (Fl_Group *)0;
-	Fl_Check_Button *btn_trace = (Fl_Check_Button *)0;
-	Fl_Check_Button *btn_xmltrace = (Fl_Check_Button *)0;
-	Fl_Check_Button *btn_rigtrace = (Fl_Check_Button *)0;
-	Fl_Check_Button *btn_gettrace = (Fl_Check_Button *)0;
-	Fl_Check_Button *btn_settrace = (Fl_Check_Button *)0;
-	Fl_Check_Button *btn_debugtrace = (Fl_Check_Button *)0;
-	Fl_Check_Button *btn_rpctrace = (Fl_Check_Button *)0;
-	Fl_Check_Button *btn_serialtrace = (Fl_Check_Button *)0;
-	Fl_Check_Button *btn_lock_trace = (Fl_Check_Button *)0;
-	Fl_Check_Button *btn_start_stop_trace = (Fl_Check_Button *)0;
-	Fl_ComboBox *selectlevel = (Fl_ComboBox *)0;
-	Fl_Button *btn_viewtrace = (Fl_Button *)0;
 
 Fl_Group *tabCOMMANDS = (Fl_Group *)0;
 	Fl_Tabs  *tabCmds = (Fl_Tabs *)0;
@@ -335,55 +321,6 @@ Fl_Group *tabRESTORE = (Fl_Group *)0;
 	Fl_Check_Button *btnRestoreCompLevel	= (Fl_Check_Button *)0;
 	Fl_Check_Button *btnUseRigData			= (Fl_Check_Button *)0;
 
-static void cb_btn_trace(Fl_Check_Button *, void *) {
-	progStatus.trace = btn_trace->value();
-}
-
-static void cb_btn_rigtrace(Fl_Check_Button *, void *) {
-	progStatus.rigtrace = btn_rigtrace->value();
-}
-
-static void cb_btn_gettrace(Fl_Check_Button *, void *) {
-	progStatus.gettrace = btn_gettrace->value();
-}
-
-static void cb_btn_settrace(Fl_Check_Button *, void *) {
-	progStatus.settrace = btn_settrace->value();
-}
-
-static void cb_btn_xmltrace(Fl_Check_Button *, void *) {
-	progStatus.xmltrace = btn_xmltrace->value();
-}
-
-static void cb_btn_debugtrace(Fl_Check_Button *, void *) {
-	progStatus.debugtrace = btn_debugtrace->value();
-}
-
-static void cb_btn_rpctrace(Fl_Check_Button *, void *) {
-	progStatus.rpctrace = btn_rpctrace->value();
-}
-
-static void cb_btn_serialtrace(Fl_Check_Button *, void *) {
-	progStatus.serialtrace = btn_serialtrace->value();
-}
-
-static void cb_btn_lock_trace(Fl_Check_Button *, void *) {
-	progStatus.locktrace = btn_lock_trace->value();
-}
-
-static void cb_btn_start_stop_trace(Fl_Check_Button *, void *) {
-	progStatus.start_stop_trace = btn_start_stop_trace->value();
-}
-
-static void cb_selectlevel(Fl_ComboBox *, void *) {
-	progStatus.rpc_level = selectlevel->index();
-	XmlRpc::setVerbosity(progStatus.rpc_level);
-}
-
-static void cb_btn_viewtrace(Fl_Button *, void *) {
-	if (!tracewindow) make_trace_window();
-	tracewindow->show();
-}
 
 static void cb_selectRig(Fl_ComboBox*, void*) {
 	initConfigDialog();
@@ -1385,76 +1322,6 @@ Fl_Group *createXCVR(int X, int Y, int W, int H, const char *label)
 	return tabXCVR;
 }
 
-Fl_Group *createTRACE(int X, int Y, int W, int H, const char *label)
-{
-	Fl_Group *tabTRACE = new Fl_Group(X, Y, W, H, label);
-
-	tabTRACE->hide();
-	btn_trace = new Fl_Check_Button(X + 10, Y + 20, 80, 20, _("Trace support code"));
-	btn_trace->value(progStatus.trace);
-	btn_trace->callback((Fl_Callback*)cb_btn_trace);
-	btn_trace->tooltip(_("Enable trace support"));
-
-	btn_debugtrace = new Fl_Check_Button(X + 10, Y + 50, 80, 20, _("Trace debug code"));
-	btn_debugtrace->value(progStatus.debugtrace);
-	btn_debugtrace->callback((Fl_Callback*)cb_btn_debugtrace);
-	btn_debugtrace->tooltip(_("Display debug output on trace view"));
-
-	btn_rigtrace = new Fl_Check_Button(X + 10, Y + 80, 80, 20, _("Trace rig class code"));
-	btn_rigtrace->value(progStatus.rigtrace);
-	btn_rigtrace->callback((Fl_Callback*)cb_btn_rigtrace);
-	btn_rigtrace->tooltip(_("Enable trace of rig methods"));
-
-	btn_gettrace = new Fl_Check_Button(X + 10, Y + 110, 80, 20, _("Trace rig class get code"));
-	btn_gettrace->value(progStatus.gettrace);
-	btn_gettrace->callback((Fl_Callback*)cb_btn_gettrace);
-	btn_gettrace->tooltip(_("Enable trace of rig get methods"));
-
-	btn_settrace = new Fl_Check_Button(X + 10, Y + 140, 80, 20, _("Trace rig class set code"));
-	btn_settrace->value(progStatus.settrace);
-	btn_settrace->callback((Fl_Callback*)cb_btn_settrace);
-	btn_settrace->tooltip(_("Enable trace of rig set methods"));
-
-	btn_lock_trace = new Fl_Check_Button(X + 10, Y + 170, 80, 20, _("Trace guard lock"));
-	btn_lock_trace->value(progStatus.settrace);
-	btn_lock_trace->callback((Fl_Callback*)cb_btn_lock_trace);
-	btn_lock_trace->tooltip(_("Enable trace of pthread locking/unlocking"));
-
-	btn_xmltrace = new Fl_Check_Button(X + 240, Y + 20, 80, 20, _("Trace xml_server code"));
-	btn_xmltrace->value(progStatus.xmltrace);
-	btn_xmltrace->callback((Fl_Callback*)cb_btn_xmltrace);
-	btn_xmltrace->tooltip(_("Enable trace of xmlrpc functions"));
-
-	btn_rpctrace = new Fl_Check_Button(X + 240, Y + 50, 80, 20, _("Trace xmlrpcpp code"));
-	btn_rpctrace->value(progStatus.rpctrace);
-	btn_rpctrace->callback((Fl_Callback*)cb_btn_rpctrace);
-	btn_rpctrace->tooltip(_("Enable trace of XmlRpc methods"));
-
-	btn_serialtrace = new Fl_Check_Button(X + 240, Y + 80, 80, 20, _("Trace serial code"));
-	btn_serialtrace->value(progStatus.serialtrace);
-	btn_serialtrace->callback((Fl_Callback*)cb_btn_serialtrace);
-	btn_serialtrace->tooltip(_("Enable trace of serial i/o"));
-
-	btn_start_stop_trace = new Fl_Check_Button(X + 240, Y + 110, 80, 20, _("Trace start/stop code"));
-	btn_start_stop_trace->value(progStatus.start_stop_trace);
-	btn_start_stop_trace->callback((Fl_Callback*)cb_btn_start_stop_trace);
-	btn_start_stop_trace->tooltip(_("Enable trace of start/stop operations"));
-
-	selectlevel = new Fl_ComboBox(X + 240, Y + 140, 80, 20, _("XmlRpc trace level"));
-	selectlevel->add("0|1|2|3|4");
-	selectlevel->align(FL_ALIGN_RIGHT);
-	selectlevel->index(progStatus.rpc_level);
-	selectlevel->tooltip(_("0 = off ... 4 maximum depth"));
-	selectlevel->readonly();
-	selectlevel->callback((Fl_Callback*)cb_selectlevel);
-
-	btn_viewtrace = new Fl_Button(X + W - 90, Y + H - 30, 85, 24, _("View Trace"));
-	btn_viewtrace->callback((Fl_Callback*)cb_btn_viewtrace);
-
-	tabTRACE->end();
-
-	return tabTRACE;
-}
 
 Fl_Group *createTCPIP(int X, int Y, int W, int H, const char *label)
 {
@@ -2793,7 +2660,6 @@ void add_tree_item(Fl_Group *g) {
 void cleartabs()
 {
 	tabXCVR->hide();
-	tabTRACE->hide();
 	tabTCPIP->hide();
 	tabPTTGEN->hide();
 	tabOTHER->hide();
@@ -2882,7 +2748,6 @@ Fl_Double_Window* XcvrDialog() {
 	tabRESTORE  = createRestore(xtabs, ytree, wtabs, htree, _("Restore"));
 	tabCOMMANDS = createCOMMANDS(xtabs, ytree, wtabs, htree, _("Commands"));
 	tabSNDCMD   = createSNDCMD(xtabs, ytree, wtabs, htree, _("Send"));
-	tabTRACE    = createTRACE(xtabs, ytree, wtabs, htree, _("Trace"));
 
 	tab_tree->begin();
 
@@ -2904,7 +2769,6 @@ Fl_Double_Window* XcvrDialog() {
 	add_tree_item(tabRESTORE);
 	add_tree_item(tabCOMMANDS);
 	add_tree_item(tabSNDCMD);
-	add_tree_item(tabTRACE);
 
 	tab_tree->end();
 

@@ -40,6 +40,8 @@
 #include "rigs.h"
 #include "xmlrpc_rig.h"
 
+#include "trace.h"
+
 const char *szNORIG = "NONE";
 
 std::vector<std::string> vNOMODES;

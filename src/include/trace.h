@@ -21,20 +21,43 @@
 #ifndef _TRACE_H
 #define _TRACE_H
 
-#include <FL/Fl_Double_Window.H>
-#include <FL/Fl_Text_Display.H>
-#include <FL/Fl_Text_Buffer.H>
-
 #include <cstdio>
 #include <string.h>
 
-//#define WITH_TRACED
-// compile using ./configure "CXXFLAGS=-DWITH_TRACED"
-//usage
-//int TRACED(add, int a, int b)
-// opening brace is part of the macro
+#include <FL/Fl.H>
+#include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Button.H>
+#include <FL/Fl_Light_Button.H>
+#include <FL/Fl_Text_Display.H>
+
+#include "rigpanel.h"
+#include "status.h"
+
+#include "xml_server.h"
+
+#include "xmlrpc_rig.h"
+#include "XmlRpc.h"
 
 extern Fl_Double_Window*	tracewindow;
+extern 	Fl_Text_Display*	tracedisplay;
+extern 	Fl_Text_Buffer*		tracebuffer;
+extern	Fl_Button*			btn_view_trace_config;
+extern 	Fl_Button*			btn_cleartrace;
+extern 	Fl_Light_Button*	btn_pausetrace;
+
+extern Fl_Double_Window*	config_trace_dialog;
+extern 	Fl_Check_Button *btn_trace;
+extern 	Fl_Check_Button *btn_xmltrace;
+extern 	Fl_Check_Button *btn_rigtrace;
+extern 	Fl_Check_Button *btn_gettrace;
+extern 	Fl_Check_Button *btn_settrace;
+extern 	Fl_Check_Button *btn_debugtrace;
+extern 	Fl_Check_Button *btn_rpctrace;
+extern 	Fl_Check_Button *btn_serialtrace;
+extern 	Fl_Check_Button *btn_lock_trace;
+extern 	Fl_Check_Button *btn_start_stop_trace;
+extern 	Fl_ComboBox *selectlevel;
+extern 	Fl_Button *btn_viewtrace;
 
 extern void trace(int n, ...); // all args of type const char *
 extern void xml_trace(int n, ...); // all args of type const char *
@@ -50,6 +73,10 @@ extern bool activate_lock_trace;
 extern void lock_trace(int n, ...); // trace lock/unlock statements
 
 extern void make_trace_window();
+extern void view_trace();
+
+extern void make_config_trace_dialog();
+extern void open_config_trace_dialog();
 
 #define getr(s)  get_trace(1, s);
 #define setr(s)  set_trace(1, s);

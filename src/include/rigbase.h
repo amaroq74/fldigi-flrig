@@ -33,7 +33,6 @@
 #include <FL/Fl.H>
 #include "util.h"
 #include "debug.h"
-#include "trace.h"
 #include "rig_io.h"
 #include "status.h"
 

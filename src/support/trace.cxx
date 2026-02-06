@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------
-// Copyright (C) 2014
+// Copyright (C) 2026
 //              David Freese, W1HKJ
 //
 // This file is part of flrig.
@@ -54,12 +54,6 @@
 
 #include "tod_clock.h"
 
-Fl_Double_Window*	tracewindow = (Fl_Double_Window *)0;
-Fl_Text_Display*	tracedisplay = (Fl_Text_Display *)0;
-Fl_Text_Buffer*		tracebuffer = (Fl_Text_Buffer*)0;
-Fl_Button*			btn_cleartrace = (Fl_Button*)0;
-Fl_Light_Button*	btn_pausetrace = (Fl_Light_Button*)0;
-
 std::string tracestring;
 
 bool stdout_trace = 
@@ -68,6 +62,11 @@ bool stdout_trace =
 
 bool pausetrace = false;
 
+static void cb_view_trace_config(Fl_Button *, void *)
+{
+	open_config_trace_dialog();
+}
+
 static void cb_pausetrace(Fl_Light_Button *o, void *)
 {
 	pausetrace = o->value();
@@ -75,7 +74,6 @@ static void cb_pausetrace(Fl_Light_Button *o, void *)
 
 static void cb_cleartrace(Fl_Button *, void *)
 {
-//	guard_lock tt(&mutex_trace);
 	pthread_mutex_lock( &mutex_trace );
 	tracedisplay->buffer()->text("");
 	tracestring.clear();
@@ -89,10 +87,16 @@ void make_trace_window() {
 	tracedisplay->buffer(tracebuffer);
 	tracedisplay->textfont(FL_SCREEN);
 	tracedisplay->wrap_mode(Fl_Text_Display::WRAP_NONE, 100);
+
+	btn_view_trace_config = new Fl_Button(5, 275, 80, 20, _("Config"));
+	btn_view_trace_config->callback((Fl_Callback *)cb_view_trace_config);
+
 	btn_pausetrace = new Fl_Light_Button(430, 275, 80, 20, _("Pause"));
 	btn_pausetrace->callback((Fl_Callback *)cb_pausetrace);
+
 	btn_cleartrace = new Fl_Button(515, 275, 80, 20, _("Clear"));
 	btn_cleartrace->callback((Fl_Callback *)cb_cleartrace);
+
 	tracewindow->resizable(tracedisplay);
 }
 

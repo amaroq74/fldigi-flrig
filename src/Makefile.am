@@ -257,6 +257,7 @@ flrig_SOURCES += \
 	UI/K4_ui.cxx \
 	UI/rigpanel.cxx \
 	UI/meters_dialog.cxx \
+	UI/ui_trace.cxx \
 	widgets/ascii.cxx \
 	widgets/combo.cxx \
 	widgets/Fl_SigBar.cxx \

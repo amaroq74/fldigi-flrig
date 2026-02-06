@@ -4109,6 +4109,7 @@ void TRACED(close_UI)
 		meter_filters,
 		meter_scale_dialog,
 		tabs_dialog,
+		config_trace_dialog,
 		mainwindow };
 	for (size_t n = 0; n < sizeof(widgets) / sizeof(*widgets); n++) {
 		if (widgets[n]) widgets[n]->hide();

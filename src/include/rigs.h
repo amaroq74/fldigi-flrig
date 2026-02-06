@@ -23,6 +23,7 @@
 #define RIGS_H
 
 #include "rigbase.h"
+
 #include "other/AOR5K.h"
 #include "icom/ICbase.h"
 #include "icom/IC703.h"

@@ -561,7 +561,11 @@ static void cb_Polling(Fl_Menu_*, void*) {
 }
 
 static void cb_mnuTrace(Fl_Menu_*, void*) {
-	open_trace_tab();
+	view_trace();
+}
+
+static void cb_mnuConfigTrace(Fl_Menu_*, void *) {
+	open_config_trace_dialog();
 }
 
 static void cb_mnuCommands(Fl_Menu_ *, void *) {

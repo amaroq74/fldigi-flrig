@@ -64,7 +64,7 @@
 #include "K3_ui.h"
 #include "KX3_ui.h"
 #include "rigpanel.h"
-#include "trace.h"
+//#include "trace.h"
 #include "cwio.h"
 #include "fsk.h"
 #include "fskioUI.h"
@@ -415,7 +415,6 @@ extern void trace(int n, ...); // all args of type const char *
 extern void trace1(int n, ...); // all args of type const char *
 
 extern Fl_Group *tabXCVR;
-extern Fl_Group *tabTRACE;
 extern Fl_Group *tabTCPIP;
 extern Fl_Group *tabPTT;
 extern Fl_Group *tabOTHER;
