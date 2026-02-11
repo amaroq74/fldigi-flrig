@@ -1308,6 +1308,7 @@ public:
 			snprintf(szMeter, sizeof(szMeter), "%d", int(smtrval));
 			std::string result_string = szMeter;
 			result = result_string;
+			xml_trace(2, "smeter: ", result_string.c_str());
 		}
 	}
 
@@ -1335,6 +1336,7 @@ public:
 			snprintf(szMeter, sizeof(szMeter), "%d", val);
 			std::string result_string = szMeter;
 			result = result_string;
+			xml_trace(2, "DBM: ", result_string.c_str());
 		}
 	}
 
@@ -1364,6 +1366,7 @@ public:
 			}
 			std::string result_string = szMeter;
 			result = result_string;
+			xml_trace(2, "S units: ", result_string.c_str());
 		}
 	}
 
@@ -1663,7 +1666,7 @@ public:
 		}
 	}
 
-	std::string help() { return std::string("sets & verifies PTT on (1) or off (0)"); }
+	std::string help() { return std::string("deprecated; use rig.set_ptt"); }
 
 } rig_set_verify_ptt(&rig_server);
 
@@ -1673,7 +1676,7 @@ class rig_set_ptt : public XmlRpcServerMethod {
 public:
 	rig_set_ptt(XmlRpcServer* s) : XmlRpcServerMethod("rig.set_ptt", s) {}
 
-		void execute(XmlRpcValue& params, XmlRpcValue& result) { 
+	void execute(XmlRpcValue& params, XmlRpcValue& result) { 
 		Fl::awake(connection_ON);
 
 		if (!xcvr_online || disable_xmlrpc->value()) {
@@ -1684,7 +1687,6 @@ public:
 		guard_lock ser_lock (&mutex_serial, "xml set ptt");
 
 		PTT = int(params[0]);
-		xml_trace(1, (PTT ? "rig_ptt ON" : "rig_ptt OFF"));
 		rigPTT(PTT);
 		{
 			bool get = ptt_state();
@@ -1695,13 +1697,13 @@ public:
 			}
 			PTT = get;
 			std::stringstream s;
-			s << "ptt returned " << get << " in " << cnt * 10 << " msec";
-			xml_trace(1, s.str().c_str());
+			s << " in " << cnt * 10 << " msec";
+			xml_trace(3, "xml set_ptt ", (PTT ? "ON" : "OFF"), s.str().c_str());
 			Fl::awake(update_UI_PTT);
 		}
 	}
 
-	std::string help() { return std::string("sets PTT on (1) or off (0)"); }
+	std::string help() { return std::string("sets PTT on (1) or off (0), waits for state change"); }
 
 } rig_set_ptt(&rig_server);
 
@@ -1709,7 +1711,7 @@ class rig_set_ptt_fast : public XmlRpcServerMethod {
 public:
 	rig_set_ptt_fast(XmlRpcServer* s) : XmlRpcServerMethod("rig.set_ptt_fast", s) {}
 
-		void execute(XmlRpcValue& params, XmlRpcValue& result) { 
+	void execute(XmlRpcValue& params, XmlRpcValue& result) { 
 		Fl::awake(connection_ON);
 
 		if (!xcvr_online || disable_xmlrpc->value()) {
@@ -1720,12 +1722,12 @@ public:
 		guard_lock ser_lock (&mutex_serial, "xml set ptt fast");
 
 		PTT = int(params[0]);
-		xml_trace(1, (PTT ? "rig_ptt ON" : "rig_ptt OFF"));
+		xml_trace(2, "xml set_ptt fast ", (PTT ? "ON" : "OFF"));
 		rigPTT(PTT);
 		Fl::awake(update_UI_PTT);
 	}
 
-	std::string help() { return std::string("deprecated; use rig.set_ptt"); }
+	std::string help() { return std::string("set PTT with waiting for state change"); }
 
 } rig_set_ptt_fast(&rig_server);
 
