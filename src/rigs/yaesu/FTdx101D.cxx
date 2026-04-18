@@ -369,6 +369,7 @@ unsigned long long RIG_FTdx101D::get_vfoA ()
 //replystr = Avfo;
 	size_t p = replystr.rfind(rsp);
 	if (p == std::string::npos) return freqA;
+	if (p + 11 > replystr.size()) return freqA;
 	unsigned long long f = 0;
 	for (size_t n = 2; n < 11; n++)
 		f = f*10 + replystr[p+n] - '0';
@@ -429,6 +430,7 @@ unsigned long long RIG_FTdx101D::get_vfoB ()
 //replystr = Bvfo;
 	size_t p = replystr.rfind(rsp);
 	if (p == std::string::npos) return freqB;
+	if (p + 11 > replystr.size()) return freqB;
 	unsigned long long f = 0;
 	for (size_t n = 2; n < 11; n++)
 		f = f*10 + replystr[p+n] - '0';
