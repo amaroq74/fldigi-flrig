@@ -381,9 +381,10 @@ XmlRpcServer::parseRequest(std::string const& request, XmlRpcValue& params)
     size_t end_id_ptr = XmlRpc::request_str.find("?", id_ptr);
     if (end_id_ptr != std::string::npos) {
       XmlRpc::client_id = XmlRpc::request_str.substr(id_ptr, end_id_ptr - id_ptr);
-      if (XmlRpc::client_id[0] == '"') XmlRpc::client_id.erase(0,1);
-      if (XmlRpc::client_id[XmlRpc::client_id.length() -1] == '"')
-        XmlRpc::client_id.erase(XmlRpc::client_id.length() - 1);
+      if (!XmlRpc::client_id.empty() && XmlRpc::client_id.front() == '"')
+        XmlRpc::client_id.erase(0, 1);
+      if (!XmlRpc::client_id.empty() && XmlRpc::client_id.back() == '"')
+        XmlRpc::client_id.pop_back();
     }
   }
 
