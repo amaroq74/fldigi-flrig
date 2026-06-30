@@ -1143,6 +1143,7 @@ int RIG_FLEX1500::get_volume_control()
 	ret = wait_string("ZZAG", 8);
 	gett("");
 	size_t p = replystr.rfind("ZZAG");
+	if (p == std::string::npos) return volctrl;
 	sscanf(&replystr[p], "ZZAG%d;",  &volctrl);
 	return volctrl;
 }

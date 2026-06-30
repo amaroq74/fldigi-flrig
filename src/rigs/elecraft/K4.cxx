@@ -738,6 +738,7 @@ double RIG_K4::get_power_control()
 
 	size_t p = replystr.rfind("PCX");
 	if (p == std::string::npos) return progStatus.power_level;
+	if (replystr.length() <= 5) return progStatus.power_level;
 	int level = fm_decimal(replystr.substr(p+3), 4);
 	if (replystr[5] == 'L') {
 		powerScale = 10;

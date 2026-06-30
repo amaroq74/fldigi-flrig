@@ -286,6 +286,7 @@ int RIG_IC7700::get_modeA()
 	if (waitFOR(8, "get mode A")) {
 		igett("get mode A");
 		size_t p = replystr.rfind(resp);
+		if (p == std::string::npos || p + 6 >= replystr.length()) return A.imode;
 
 		if (replystr[p+5] == -1) { A.imode = filA = 0; return A.imode; }
 
@@ -302,6 +303,7 @@ int RIG_IC7700::get_modeA()
 			if (waitFOR(9, "get digital setting")) {
 				igett("get digital setting");
 				size_t p = replystr.rfind(resp);
+				if (p != std::string::npos && p + 7 < replystr.length()) {
 				if (replystr[p+6] == 0x01) {
 					if (md == LSB7700) md = LSBD7700;
 					else if (md == USB7700) md = USBD7700;
@@ -309,6 +311,7 @@ int RIG_IC7700::get_modeA()
 					else if (md == FM7700) md = FMD7700;
 				}
 				if (replystr[p+7]) filA = replystr[p+7];
+				}
 			}
 		}
 		A.imode = md;
@@ -347,6 +350,7 @@ int RIG_IC7700::get_modeB()
 	if (waitFOR(8, "get mode B")) {
 		igett("get mode B");
 		size_t p = replystr.rfind(resp);
+		if (p == std::string::npos || p + 6 >= replystr.length()) return B.imode;
 
 		if (replystr[p+5] == -1) { B.imode = filB = 0; return B.imode; }
 
@@ -362,6 +366,7 @@ int RIG_IC7700::get_modeB()
 			if (waitFOR(9, "get digital")) {
 				igett("get digital");
 				size_t p = replystr.rfind(resp);
+				if (p != std::string::npos && p + 7 < replystr.length()) {
 				if (replystr[p+6] == 0x01) {
 					if (md == LSB7700) md = LSBD7700;
 					else if (md == USB7700) md = USBD7700;
@@ -369,6 +374,7 @@ int RIG_IC7700::get_modeB()
 					else if (md == FM7700) md = FMD7700;
 				}
 				if (replystr[p+7]) filB = replystr[p+7];
+				}
 			}
 		}
 		B.imode = md;
@@ -523,6 +529,7 @@ int RIG_IC7700::get_attenuator()
 	if (waitFOR(7, "get attenuator")) {
 		igett("get attenuator");
 		size_t p = replystr.rfind(resp);
+		if (p == std::string::npos || p + 6 >= replystr.length()) return atten_level;
 		if (replystr[p+6] == 0x20) {
 			atten_level = 1;
 		} else {

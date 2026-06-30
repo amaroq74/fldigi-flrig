@@ -872,6 +872,7 @@ int RIG_FDMDUO::get_PTT()
 	get_trace(1, "get_PTT");
 	ret = wait_char(';', 38, 100, "get PTT", ASC);
 	gett("");
+	if (ret < 38) return ptt_;
 	ptt_ = (replystr[28] == '1');
 	return ptt_;
 }

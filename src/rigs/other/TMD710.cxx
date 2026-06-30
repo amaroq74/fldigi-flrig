@@ -126,6 +126,7 @@ unsigned long long RIG_TMD710::get_vfoA ()
 	size_t p = replystr.rfind(rsp);
 	if (p == std::string::npos) return freqA;
 	p += 5;
+	if (p + ndigits > replystr.size()) return freqA;
 	unsigned long long f = 0;
 	for (int n = 0; n < ndigits; n++)
 		f = f * 10 + replystr[p + n] - '0';
@@ -271,6 +272,7 @@ unsigned long long RIG_TMD710::get_vfoB ()
 	size_t p = replystr.rfind(rsp);
 	if (p == std::string::npos) return freqB;
 	p += 5;
+	if (p + ndigits > replystr.size()) return freqB;
 	unsigned long long f = 0;
 	for (int n = 0; n < ndigits; n++)
 		f = f * 10 + replystr[p + n] - '0';
@@ -423,10 +425,11 @@ double RIG_TMD710::get_power_control()
 	if (inuse == onA) cmd += '0';
 	if (inuse == onB) cmd += '1';
 	cmd += '\r';
-	wait_char('\r', 8, TMD710_WAIT_TIME, "get power", ASC);
+	int ret = wait_char('\r', 8, TMD710_WAIT_TIME, "get power", ASC);
 	get_trace(1,"get_power_control");
 	int wert;
 	int mtr = 30;
+	if (ret < 6) return mtr;
 	wert = replystr[5] - '0';
 	switch (wert) {
 		case 0: mtr = 50; break;

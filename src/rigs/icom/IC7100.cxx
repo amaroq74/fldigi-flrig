@@ -1040,6 +1040,7 @@ int RIG_IC7100::get_attenuator()
 
 	if (ret) {
 		size_t p = replystr.rfind(resp);
+		if (p == std::string::npos || p + 5 >= replystr.length()) return atten_state;
 		if (replystr[p+5] == 0x12) {
 			atten_state = 1;
 		} else {

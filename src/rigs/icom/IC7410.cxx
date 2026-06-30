@@ -292,6 +292,7 @@ int RIG_IC7410::get_modeA()
 	resp += '\x04';
 	if (waitFOR(8, "get mode A")) {
 		size_t p = replystr.rfind(resp);
+		if (p == std::string::npos || p + 6 >= replystr.length()) return A.imode;
 		if (replystr[p+5] == -1) { A.imode = filA = 0; }
 		else {
 			for (md = LSB7410; md <= RTTYR7410; md++)
@@ -306,12 +307,14 @@ int RIG_IC7410::get_modeA()
 				resp.append("\x1a\x06");
 				if (waitFOR(9, "get digital setting")) {
 					size_t p = replystr.rfind(resp);
+					if (p != std::string::npos && p + 7 < replystr.length()) {
 					if (replystr[p+6] == 0x01) {
 						if (md == LSB7410) md = LSBD7410;
 						else if (md == USB7410) md = USBD7410;
 						else if (md == FM7410) md = FMD7410;
 					}
 					if (replystr[p+7]) filA = replystr[p+7];
+					}
 				}
 			}
 			A.imode = md;
@@ -364,6 +367,7 @@ int RIG_IC7410::get_modeB()
 	resp += '\x04';
 	if (waitFOR(8, "get mode B")) {
 		size_t p = replystr.rfind(resp);
+		if (p == std::string::npos || p + 6 >= replystr.length()) return B.imode;
 
 		if (replystr[p+5] == -1) { B.imode = filB = 0; }
 		else {
@@ -379,12 +383,14 @@ int RIG_IC7410::get_modeB()
 				resp.append("\x1a\x06");
 				if (waitFOR(9, "get digital")) {
 					size_t p = replystr.rfind(resp);
+					if (p != std::string::npos && p + 7 < replystr.length()) {
 					if (replystr[p+6] == 0x01) {
 						if (md == LSB7410) md = LSBD7410;
 						else if (md == USB7410) md = USBD7410;
 						else if (md == FM7410) md = FMD7410;
 					}
 					if (replystr[p+7]) filB = replystr[p+7];
+					}
 				}
 			}
 			B.imode = md;
@@ -539,6 +545,7 @@ int RIG_IC7410::get_attenuator()
 	resp += '\x11';
 	if (waitFOR(7, "get attenuator")) {
 		size_t p = replystr.rfind(resp);
+		if (p == std::string::npos || p + 6 >= replystr.length()) return atten_level;
 		if (replystr[p+6] == 0x20) {
 			atten_level = 1;
 		} else {

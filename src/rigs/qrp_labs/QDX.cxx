@@ -219,6 +219,7 @@ int RIG_QDX::get_split()
 	ret = wait_char(';', 4, 100, "get split", ASC);
 	gett("");
 
+	if (replystr.length() <= 2) return split_;
 	split_ = replystr[2] == '1';
 	return split_;
 }

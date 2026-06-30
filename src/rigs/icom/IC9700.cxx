@@ -2006,7 +2006,8 @@ int RIG_IC9700::get_sat_mode()
 
 	if (ret) {
 		size_t p = replystr.rfind(resp);
-		iret = replystr[p+6];
+		if (p != std::string::npos && p + 6 < replystr.length())
+			iret = replystr[p+6];
 	}
 
 	// These two flags are used elsewhere and broke sat mode - only allow them to
@@ -2041,7 +2042,8 @@ int RIG_IC9700::get_dualwatch()
 
 	if (ret) {
 		size_t p = replystr.rfind(resp);
-		iret = replystr[p+6];
+		if (p != std::string::npos && p + 6 < replystr.length())
+			iret = replystr[p+6];
 	}
 
 	return iret;

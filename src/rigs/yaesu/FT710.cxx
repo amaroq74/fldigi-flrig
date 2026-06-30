@@ -574,6 +574,7 @@ int RIG_FT710::get_swr()
 
 	int mtr = 0, dmy = 0;
 	size_t p = replystr.rfind("RM6");
+	if (p == std::string::npos) return 0;
 	sscanf(&replystr[p], "RM6%3d%3d", &mtr, &dmy);
 
 	return mtr / 2.56;
@@ -658,6 +659,7 @@ int RIG_FT710::get_power_out()
 
 	int mtr = 0, dmy = 0;
 	size_t p = replystr.rfind("RM5");
+	if (p == std::string::npos) return 0;
 
 	sscanf(&replystr[p], "RM5%3d%3d", &mtr, &dmy);
 
@@ -684,6 +686,7 @@ int RIG_FT710::get_alc()
 
 	int mtr = 0, dmy = 0;
 	size_t p = replystr.rfind("RM4");
+	if (p == std::string::npos) return 0;
 	sscanf(&replystr[p], "RM4%3d%3d", &mtr, &dmy);
 
 	return (int)ceil(mtr / 2.56);

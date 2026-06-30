@@ -929,6 +929,7 @@ int  RIG_TS480SAT::get_agc()
 	size_t p = replystr.rfind("GT");
 	gett("agc");
 	if (p == std::string::npos) return agcval;
+	if (replystr.length() <= 4) return agcval;
 	if (replystr[4] == ' ') return 0;
 	agcval = replystr[4] - '0' + 1; // '0' == off, '1' = fast, '2' = slow
 

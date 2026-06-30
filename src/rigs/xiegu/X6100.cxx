@@ -558,6 +558,7 @@ end_wait_modeA:
 		resp += '\x00'; resp += '\x53';
 		if (waitFOR(10, "get CW sideband")) {
 			p = replystr.rfind(resp);
+			if (p == std::string::npos || p + 8 >= replystr.length()) return A.imode;
 			CW_sense = replystr[p+8];
 			if (CW_sense) {
 				X6100_mode_type[CW705] = 'U';
@@ -649,6 +650,7 @@ end_wait_modeB:
 		resp += '\x00'; resp += '\x53';
 		if (waitFOR(10, "get CW sideband")) {
 			p = replystr.rfind(resp);
+			if (p == std::string::npos || p + 8 >= replystr.length()) return B.imode;
 			CW_sense = replystr[p+8];
 			if (CW_sense) {
 				X6100_mode_type[CW705] = 'U';

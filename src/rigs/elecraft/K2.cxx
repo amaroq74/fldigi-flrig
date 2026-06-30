@@ -205,6 +205,7 @@ bool RIG_K2::get_info()
 
 	if (ret < 38) return false;
 	size_t p = replystr.find(rsp);
+	if (p == std::string::npos || p + 32 >= replystr.length()) return false;
 	ptt_ = (replystr[p+28] == '1');
 	inuse = (replystr[p+30] == '1') ? onB : onA;
 	K2split = replystr[p+32]-'0';
@@ -587,6 +588,7 @@ int RIG_K2::get_PTT()
 
 	if (ret < 38) return false;
 	size_t p = replystr.find(rsp);
+	if (p == std::string::npos || p + 28 >= replystr.length()) return ptt_;
 	ptt_ = (replystr[p+28] == '1');
 	return ptt_;
 }

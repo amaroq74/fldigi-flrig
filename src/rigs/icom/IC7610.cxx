@@ -2262,7 +2262,8 @@ int RIG_IC7610::get_dual_watch()
 	std::string resp = pre_fm;
 	if (waitFOR(9, "get dual watch")) {
 		size_t p = replystr.rfind(resp);
-		progStatus.dual_watch = (replystr[p+6] == 0x01);
+		if (p != std::string::npos && p + 6 < replystr.length())
+			progStatus.dual_watch = (replystr[p+6] == 0x01);
 	}
 	get_trace(2, "get_dual_watch()", str2hex(replystr.c_str(), replystr.length()));
 	Fl::awake(set_ic7610_dual_watch);

@@ -126,6 +126,7 @@ void RIG_TRUSDX::get_IF()
 	wait_char(';', 38, 100, "get IF", ASC);	// This function called for its side effect, not its return.
 	gett("");
 	size_t p = replystr.rfind("IF");
+	if (p == std::string::npos || p + 29 >= replystr.length()) return;
 	A.imode = replystr[p + 29] - '1';
 	return;
 }
