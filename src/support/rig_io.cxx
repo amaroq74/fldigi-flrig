@@ -151,10 +151,10 @@ bool startSepSerial()
 	return true;
 }
 
-// TODO: Review for thread safety.  
+// TODO: Review for thread safety.
 //  Tried adding mutex, but deadlocks startup
 // progress dialog:
-// guard_lock reply_lock(&mutex_replystr); 
+// guard_lock reply_lock(&mutex_replystr);
 //
 void assignReplyStr(std::string val)
 {
@@ -194,11 +194,11 @@ int readResponse(std::string req1, std::string req2)
 
 int sendCommand (std::string s, int nread, int wait)
 {
-	int numwrite = (int)s.size();
+	int numwrite = (int)s.length();
 
 	// TODO: Review for thread safety
 	//
-	// Clear command before sending, to keep the logs sensical.  Otherwise it looks like 
+	// Clear command before sending, to keep the logs sensical.  Otherwise it looks like
 	// reply was from this command, when it really was from a previous command.
 	assignReplyStr("");
 
@@ -220,7 +220,7 @@ int sendCommand (std::string s, int nread, int wait)
 	if (progStatus.use_tcpip) {
 		readResponse();
 		send_to_remote(s);
-		int timeout = 
+		int timeout =
 			progStatus.tcpip_ping_delay + nread * 2;
 		while (timeout > 0) {
 			if (timeout > 10) MilliSleep(10);
@@ -323,7 +323,7 @@ bool waitCommand(
 	while (waited < msec) {
 		if (readResponse())
 			returned.append(respstr);
-		if (	((int)returned.length() >= nread) || 
+		if (	((int)returned.length() >= nread) ||
 				(returned.find(term) != std::string::npos) ) {
 			assignReplyStr(returned);
 			waited = zmsec() - tod_start;
@@ -344,7 +344,7 @@ bool waitCommand(
 	showresp(ERR, how, sztemp, command, returned);
 	if (waitcount > 4 && !timeout_alert) {
 		timeout_alert = true;
-		snprintf(sztimeout_alert, sizeof(sztimeout_alert), 
+		snprintf(sztimeout_alert, sizeof(sztimeout_alert),
 			"Serial i/o failure\n%s TIMED OUT in %d ms",
 			command.c_str(), waited);
 			RigSerial->failed(1);
@@ -372,7 +372,7 @@ int waitResponse(int timeout)
 	return n;
 }
 
-void showresp(int level, int how, std::string s, std::string tx, std::string rx) 
+void showresp(int level, int how, std::string s, std::string tx, std::string rx)
 {
 	time_t now;
 	time(&now);
