@@ -133,6 +133,7 @@ private:
 	pthread_mutex_t* mutex;
 	std::string how;
 	long int start_time;
+	bool locked;
 //	int how;
 };
 

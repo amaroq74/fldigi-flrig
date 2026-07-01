@@ -27,6 +27,7 @@
 #include "threads.h"
 #include "util.h"
 #include "support.h"
+#include "debug.h"
 
 /// This ensures that a mutex is always unlocked when leaving a function or block.
 
@@ -37,12 +38,13 @@ extern pthread_mutex_t debug_mutex;
 extern pthread_mutex_t mutex_rcv_socket;
 extern pthread_mutex_t mutex_trace;
 
-guard_lock::guard_lock(pthread_mutex_t* m, std::string h) : mutex(m) {
+guard_lock::guard_lock(pthread_mutex_t* m, std::string h) : mutex(m), locked(false) {
 
 	how.clear();
 	start_time = zmsec();
 	for (int i = 0; i < 10; i++) {
 		if (pthread_mutex_trylock(mutex) == 0) {
+			locked = true;
 			std::string szlock = name(mutex);
 			szlock.append(" try lock ");
 			if (!h.empty()) {
@@ -55,16 +57,32 @@ guard_lock::guard_lock(pthread_mutex_t* m, std::string h) : mutex(m) {
 		MilliSleep(50);
 	}
 
+	// The mutex is still held by another thread after ~500 ms.  We must NOT
+	// proceed without it: the guarded critical sections touch the shared
+	// serial port / reply buffer, and the destructor would otherwise unlock
+	// a mutex owned by another thread (undefined behavior on a default
+	// mutex), destroying mutual exclusion.  Report the contention and block
+	// until the lock is genuinely acquired.
+	if (!h.empty()) how = h;
+	LOG_WARN("guard_lock contention on %s%s%s; blocking until acquired",
+		name(mutex),
+		how.empty() ? "" : " : ",
+		how.c_str());
+
 	std::string szlock = name(mutex);
-	szlock.append(" lock FAILED ").append(name(mutex));
-	if (!h.empty())
+	szlock.append(" lock contention, blocking ");
+	if (!how.empty())
 		szlock.append(how);
-	progStatus.locktrace = true;
 	lock_trace(1, szlock.c_str());
 
+	pthread_mutex_lock(mutex);
+	locked = true;
 }
 
 guard_lock::~guard_lock(void) {
+
+	if (!locked)
+		return;
 
 	char szlock[200];
 	snprintf(szlock, sizeof(szlock), "%s locked for %lu msec", name(mutex), (long)(zmsec() - start_time));
